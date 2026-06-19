@@ -243,6 +243,49 @@ def _add_emojis(text: str) -> str:
 # Casual-mode emoji boost: appended when no keyword emoji already fired.
 _CASUAL_EMOJIS = ["👋", "☕", "😊", "✌️", "🙌", "🤙", "😎", "✨", "💯", "🔥", "🫡"]
 
+# Fitzpatrick type-6 (dark) skin tone modifier for hand/person emojis.
+# Face emojis (😊, 😎, etc.) do not support skin tones in Unicode.
+_SKIN_TONE = "🏿"
+_TONEABLE_BASES = {
+    "\U0001F44B",  # 👋 waving hand
+    "\u270C",       # ✌ victory hand
+    "\U0001F64C",   # 🙌 raising hands
+    "\U0001F919",   # 🤙 call me hand
+    "\U0001F64F",   # 🙏 folded hands
+    "\U0001F647",   # 🙇 person bowing
+    "\U0001F44D",   # 👍 thumbs up
+    "\U0001F44E",   # 👎 thumbs down
+    "\U0001F44C",   # 👌 OK hand
+    "\U0001F937",   # 🤷 shrug
+}
+
+
+def _apply_skin_tone(emoji: str) -> str:
+    """Append the dark skin tone modifier to hand/person emojis."""
+    out = []
+    chars = list(emoji)
+    i = 0
+    while i < len(chars):
+        ch = chars[i]
+        if ch in _TONEABLE_BASES:
+            out.append(ch)
+            out.append(_SKIN_TONE)
+            # Keep any emoji-variation selector after the tone.
+            if i + 1 < len(chars) and chars[i + 1] == "\ufe0f":
+                out.append("\ufe0f")
+                i += 2
+                continue
+            i += 1
+            continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+# Apply skin tone to all hand/person emojis in the maps.
+_EMOJI_MAP = {k: _apply_skin_tone(v) for k, v in _EMOJI_MAP.items()}
+_CASUAL_EMOJIS = [_apply_skin_tone(e) for e in _CASUAL_EMOJIS]
+
 
 def _casual_emoji_boost(text: str) -> str:
     """Append a casual emoji if the text doesn't already end with one."""
