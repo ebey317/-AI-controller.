@@ -5,8 +5,8 @@ Wants=graphical-session.target voice-bridge.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 %h/scripts/ptt_pynput.py
-WorkingDirectory=%h/scripts
+ExecStart=/usr/bin/python3 %h/projects/-AI-controller./scripts/ptt_pynput.py
+WorkingDirectory=%h/projects/-AI-controller./scripts
 Restart=on-failure
 RestartSec=3
 Environment=DISPLAY=:0
