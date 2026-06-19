@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys, subprocess, os, tempfile, json, threading, wave, struct, time, re
+import sys, subprocess, os, tempfile, json, threading, wave, struct, time, re, random
 from datetime import datetime
 import urllib.request
 import urllib.error
@@ -15,6 +15,7 @@ SENSEI_SESSION = os.environ.get("SENSEI_SESSION", "focus-engine")
 MODE_FILE = os.path.expanduser("~/.config/ptt_mode")
 VOCAB_FILE = os.path.expanduser("~/.config/ptt_vocabulary.json")
 INPUT_TARGET_FILE = os.path.expanduser("~/.config/ai_controller_input_target")
+TYPING_STATE_FILE = "/tmp/ptt_typing_state"
 
 
 
@@ -121,6 +122,75 @@ def _load_input_target() -> str:
     return "type"
 
 
+def _type_text_fast(text: str) -> None:
+    """Type text into the focused window.
+
+    xdotool type is the only method that works reliably across terminals,
+    browsers, Discord, games, etc. Unicode (BUBBLY/BOLD/BIG) is injected
+    character-by-character, so it is slower than ASCII; clipboard paste was
+    tried but is not reliable in the operator's target windows.
+
+    PRO/CASUAL use delay 0. Unicode modes use a tiny delay so multi-byte
+    characters don't get dropped by the target field.
+    """
+    env = {**os.environ, 'DISPLAY': os.environ.get('DISPLAY', ':0')}
+    # ASCII (PRO/CASUAL) can be fired as fast as possible.
+    delay = _XDOTOOL_TYPE_DELAY_MS
+    if any(ord(ch) >= 128 for ch in text):
+        delay = 2  # ms; just enough to keep Unicode chars from being dropped
+    subprocess.run(['xdotool', 'type', '--clearmodifiers',
+                    f'--delay={delay}', '--', text],
+                   env=env)
+
+
+def _typing_hud(mode: str, text: str):
+    """Launch a transient HUD for slow Unicode typing modes. Returns Popen handle or None."""
+    if mode not in ("bubbly", "bold", "big"):
+        return None
+    if len(text) < 25:
+        return None
+    labels = {
+        "bubbly": "✨  Typing cursive...",
+        "bold": "𝐁  Typing bold...",
+        "big": "Ｔ  Typing big...",
+    }
+    try:
+        return subprocess.Popen(
+            [sys.executable, os.path.join(os.path.dirname(__file__), "typing_hud.py"),
+             labels.get(mode, "Typing..."), mode],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            env={**os.environ, 'DISPLAY': os.environ.get('DISPLAY', ':0')},
+        )
+    except Exception:
+        return None
+
+
+def _close_typing_hud(hud):
+    """Close the typing HUD if it was opened."""
+    if hud is None:
+        return
+    try:
+        hud.terminate()
+        hud.wait(timeout=1)
+    except Exception:
+        try:
+            hud.kill()
+        except Exception:
+            pass
+
+
+def _set_typing_state(state: str, mode: str = "") -> None:
+    """Write typing state for slide_keyboard.py to consume.
+
+    state: 'idle' or 'typing'
+    """
+    try:
+        with open(TYPING_STATE_FILE, "w", encoding="utf-8") as f:
+            f.write(f"{state}:{mode}" if mode else state)
+    except Exception:
+        pass
+
+
 def _to_cursive(text: str) -> str:
     """Map ASCII letters to cursive script Unicode."""
     return "".join(_CURSIVE_MAP.get(ch, ch) for ch in text)
@@ -153,12 +223,23 @@ def _add_emojis(text: str) -> str:
     return text
 
 
+# Casual-mode emoji boost: appended when no keyword emoji already fired.
+_CASUAL_EMOJIS = ["👋", "☕", "😊", "✌️", "🙌", "🤙", "😎", "✨", "💯", "🔥", "🫡"]
+
+
+def _casual_emoji_boost(text: str) -> str:
+    """Append a casual emoji if the text doesn't already end with one."""
+    if any(text.endswith(emoji) for emoji in _EMOJI_MAP.values()):
+        return text
+    return f"{text} {random.choice(_CASUAL_EMOJIS)}"
+
+
 def _transform_text(text: str, mode: str) -> str:
     """Apply style to transcript based on active mode.
 
     PRO returns the raw transcript with no changes. BUBBLY uses italic Unicode.
-    CASUAL lowercases everything for a relaxed tone. BOLD and BIG use their
-    respective Unicode letter blocks.
+    CASUAL lowercases everything and gets an extra emoji boost. BOLD and BIG
+    use their respective Unicode letter blocks.
     """
     if mode == "pro":
         return text
@@ -166,7 +247,7 @@ def _transform_text(text: str, mode: str) -> str:
     if mode == "bubbly":
         text = _to_italic(text)
     elif mode == "casual":
-        text = text.lower()
+        text = _casual_emoji_boost(text.lower())
     elif mode == "bold":
         text = _to_bold(text)
     elif mode == "big":
@@ -379,10 +460,11 @@ def start_recording():
         rawfile = tempfile.mktemp(suffix='.raw', dir='/tmp')
         wavfile = tempfile.mktemp(suffix='.wav', dir='/tmp')
         rec_proc = subprocess.Popen(
-            ['parec', '--device=alsa_input.usb-Microsoft_Controller_3039373130383038333134313433-00.mono-fallback',
+            ['stdbuf', '-o0', 'parec',
+             '--device=alsa_input.usb-Microsoft_Controller_3039373130383038333134313433-00.mono-fallback',
              '--rate', str(SAMPLE_RATE), '--channels', str(CHANNELS),
-             '--format', 's16le', '--raw', rawfile],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+             '--format', 's16le', '--raw'],
+            stdout=open(rawfile, 'wb'), stderr=subprocess.DEVNULL)
         recording = True
         print("  Recording...", flush=True)
 
@@ -419,6 +501,8 @@ def stop_and_send():
         _last_f13_time = now
         rec_proc.terminate()
         rec_proc.wait()
+        if rec_proc.stdout:
+            rec_proc.stdout.close()
         recording = False
 
     # Build WAV from raw PCM
@@ -448,6 +532,13 @@ def stop_and_send():
     duration, rms = _wav_stats(wavfile)
     print(f"  Sending... ({duration:.2f}s RMS={rms:.1f})", flush=True)
 
+    # For Unicode modes, show the typing indicator immediately on trigger
+    # release so the operator gets feedback while STT runs.
+    mode = _load_ptt_mode()
+    show_indicator = mode in ("bubbly", "bold", "big")
+    if show_indicator:
+        _set_typing_state("typing", mode)
+
     transcript = ""
     try:
         r = subprocess.run(
@@ -463,25 +554,25 @@ def stop_and_send():
         # Fast personal-vocabulary autocorrect (applies to PRO and BUBBLY)
         transcript = _apply_vocabulary(transcript)
 
-        # Apply PRO / BUBBLY / BOLD / BIG style toggle (set by slide_keyboard.py mode button)
-        mode = _load_ptt_mode()
-        if mode in ("bubbly", "bold", "big") and transcript:
+        # Apply PRO / BUBBLY / CASUAL / BOLD / BIG style toggle (set by slide_keyboard.py mode button)
+        if mode in ("bubbly", "casual", "bold", "big") and transcript:
             transcript = _transform_text(transcript, mode)
 
         if response:
             print(f"  Response: {response}", flush=True)
         elif transcript:
             target = _load_input_target()
-            print(f"  Output ({target}): {transcript}", flush=True)
+
+            # Only explicit clipboard target skips typing. Everything else goes
+            # through xdotool type — clipboard auto-paste proved unreliable in
+            # the operator's target windows.
+            use_clipboard = (target == "clipboard")
+
+            print(f"  Output ({'clipboard' if use_clipboard else 'type'}): {transcript}", flush=True)
             time.sleep(_TYPE_SETTLE_MS / 1000.0)
-            if target == "clipboard":
-                # Clipboard-only mode: never auto-type, just copy for manual paste.
+
+            if use_clipboard:
                 _set_clipboard_text(transcript)
-            elif _is_discord_voice_window():
-                # Discord voice channels have no focused text field; auto-typing
-                # would fall through to the last text channel. Queue it instead.
-                _set_clipboard_text(transcript)
-                _queue_discord_text(transcript)
             elif _is_browser_window():
                 result = _send_browser_text(transcript)
                 if not result.get("ok"):
@@ -503,13 +594,18 @@ def stop_and_send():
                 # correctly every time, nothing ever appeared on screen).
                 # Plain `xdotool type`, no --window, uses XTestFakeKeyEvent
                 # and goes to whatever has real focus.
-                cmd = ['xdotool', 'type', '--clearmodifiers',
-                       f'--delay={_XDOTOOL_TYPE_DELAY_MS}', '--', transcript]
-                subprocess.run(cmd, env={**os.environ, 'DISPLAY': os.environ.get('DISPLAY', ':0')})
+                #
+                # Future UX: transform the floating legend/keyboard into a
+                # typing indicator while Unicode modes emit. For now we write
+                # a state file that slide_keyboard.py can watch.
+                _type_text_fast(transcript)
         else:
             print("  (nothing heard)", flush=True)
     except Exception as ex:
         print(f"  Error: {ex}", flush=True)
+    finally:
+        if show_indicator:
+            _set_typing_state("idle")
 
     # Save a debug copy for later inspection.
     try:

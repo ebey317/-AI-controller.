@@ -37,6 +37,7 @@ import voice_toggle
 PTT_MODE_FILE = os.path.expanduser("~/.config/ptt_mode")
 VOICE_FILE = os.path.expanduser("~/.config/ai_controller_voice")
 INPUT_TARGET_FILE = os.path.expanduser("~/.config/ai_controller_input_target")
+TYPING_STATE_FILE = "/tmp/ptt_typing_state"
 
 ROWS_LOWER = [
     ["`", "esc", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "bksp"],
@@ -244,6 +245,20 @@ class SlideKeyboard(Gtk.Window):
         target_label.get_style_context().add_class("shelf-title")
         self.voice_shelf.pack_end(target_label, False, False, 0)
 
+        # TYPING INDICATOR: replaces the keyboard content while Unicode modes
+        # emit long text. Centered in the panel, same dark/orange theme.
+        self.typing_indicator = Gtk.Label(label="")
+        self.typing_indicator.set_name("typing-indicator")
+        self.typing_indicator.set_markup(
+            f'<span font="16" weight="bold" color="{HUD_ORANGE}">✨  Typing...</span>'
+        )
+        self.typing_indicator.set_margin_start(40)
+        self.typing_indicator.set_margin_end(40)
+        self.typing_indicator.set_margin_top(30)
+        self.typing_indicator.set_margin_bottom(30)
+        self.panel.pack_start(self.typing_indicator, True, True, 0)
+        self.typing_indicator.hide()
+
         self.sw = screen.get_width()
         self.sh = screen.get_height()
         self.center_x = (self.sw - self.WIDTH) // 2
@@ -264,6 +279,10 @@ class SlideKeyboard(Gtk.Window):
         self.set_opacity(0.0)
         self.visible_state = False
         self._anim_id = None
+
+        # Poll typing state from ptt_pynput.py so the keyboard can transform
+        # into a typing indicator while Unicode modes emit.
+        self._typing_poll_id = GLib.timeout_add(100, self._check_typing_state)
 
     def _load_ptt_mode(self) -> str:
         try:
@@ -411,6 +430,71 @@ class SlideKeyboard(Gtk.Window):
             return True
 
         self._anim_id = GLib.timeout_add(15, step)
+
+    def _typing_state(self) -> tuple[str, str]:
+        """Read typing state file written by ptt_pynput.py."""
+        try:
+            with open(TYPING_STATE_FILE, "r", encoding="utf-8") as f:
+                parts = f.read().strip().split(":")
+                state = parts[0]
+                mode = parts[1] if len(parts) > 1 else ""
+                if state in ("typing", "idle"):
+                    return state, mode
+        except Exception:
+            pass
+        return "idle", ""
+
+    def _cursor_position(self) -> tuple[int, int]:
+        """Return current mouse pointer position as a proxy for text cursor."""
+        try:
+            out = subprocess.check_output(
+                ["xdotool", "getmouselocation"],
+                env={**os.environ, "DISPLAY": os.environ.get("DISPLAY", ":0")},
+                stderr=subprocess.DEVNULL,
+                timeout=1,
+            ).decode()
+            x = int(out.split()[0].split(":")[1])
+            y = int(out.split()[1].split(":")[1])
+            return x, y
+        except Exception:
+            return self.center_x, self.center_y
+
+    def _show_typing_indicator(self, mode: str):
+        labels = {
+            "bubbly": "✨  Typing cursive...",
+            "bold": "𝐁  Typing bold...",
+            "big": "Ｔ  Typing big...",
+        }
+        self.typing_indicator.set_markup(
+            f'<span font="16" weight="bold" color="{HUD_ORANGE}">'
+            f'{labels.get(mode, "Typing...")}</span>'
+        )
+        self.mode_bar.hide()
+        self.grid.hide()
+        self.voice_shelf.hide()
+        self.typing_indicator.show()
+        # Move near cursor; keep window roughly on screen.
+        cx, cy = self._cursor_position()
+        pad = 20
+        x = max(0, min(self.sw - self.WIDTH, cx - self.WIDTH // 2))
+        y = max(0, min(self.sh - self.HEIGHT, cy - self.HEIGHT - pad))
+        self.move(x, y)
+
+    def _show_keyboard_content(self):
+        self.typing_indicator.hide()
+        self.mode_bar.show()
+        self.grid.show()
+        self.voice_shelf.show()
+        self.move(self.center_x, self.center_y if self.visible_state else self.hidden_y)
+
+    def _check_typing_state(self):
+        state, mode = self._typing_state()
+        currently_typing = self.typing_indicator.get_visible()
+        if state == "typing" and not currently_typing:
+            self._show_typing_indicator(mode)
+        elif state == "idle" and currently_typing:
+            self._show_keyboard_content()
+        return True  # keep polling
 
 
 PIDFILE = "/tmp/slide_keyboard.pid"
