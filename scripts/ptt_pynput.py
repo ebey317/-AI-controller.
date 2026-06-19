@@ -122,22 +122,20 @@ def _load_input_target() -> str:
     return "type"
 
 
-def _type_text_fast(text: str) -> None:
+def _type_text_fast(text: str, mode: str = "pro") -> None:
     """Type text into the focused window.
 
     xdotool type is the only method that works reliably across terminals,
-    browsers, Discord, games, etc. Unicode (BUBBLY/BOLD/BIG) is injected
-    character-by-character, so it is slower than ASCII; clipboard paste was
-    tried but is not reliable in the operator's target windows.
-
-    PRO/CASUAL use delay 0. Unicode modes use a tiny delay so multi-byte
-    characters don't get dropped by the target field.
+    browsers, Discord, games, etc. Unicode modes are injected character-by-
+    character, so they are slower than ASCII; clipboard paste was tried but
+    is not reliable in the operator's target windows.
     """
     env = {**os.environ, 'DISPLAY': os.environ.get('DISPLAY', ':0')}
     # ASCII (PRO/CASUAL) can be fired as fast as possible.
     delay = _XDOTOOL_TYPE_DELAY_MS
     if any(ord(ch) >= 128 for ch in text):
-        delay = 35  # ms; slow enough to keep Unicode chars from being dropped
+        # Cursive (Mathematical Script) needs more time than bold/fullwidth.
+        delay = 55 if mode == "bubbly" else 35
     subprocess.run(['xdotool', 'type', '--clearmodifiers',
                     f'--delay={delay}', '--', text],
                    env=env)
@@ -610,7 +608,7 @@ def stop_and_send():
                 # Future UX: transform the floating legend/keyboard into a
                 # typing indicator while Unicode modes emit. For now we write
                 # a state file that slide_keyboard.py can watch.
-                _type_text_fast(transcript)
+                _type_text_fast(transcript, mode)
         else:
             print("  (nothing heard)", flush=True)
     except Exception as ex:
