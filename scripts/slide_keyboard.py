@@ -311,9 +311,17 @@ class SlideKeyboard(Gtk.Window):
         self._anim_id = GLib.timeout_add(15, step)
 
 
+PIDFILE = "/tmp/slide_keyboard.pid"
+
 if __name__ == "__main__":
     win = SlideKeyboard()
     win.connect("destroy", Gtk.main_quit)
+    # Own our PID file so external togglers always know which process to signal.
+    try:
+        with open(PIDFILE, "w", encoding="utf-8") as f:
+            f.write(str(os.getpid()))
+    except Exception:
+        pass
     # ptt_pynput.py owns the F14 listener (it already runs persistently) and
     # toggles us via SIGUSR1 — avoids two competing F14 listeners.
     signal.signal(signal.SIGUSR1, lambda *_: win.toggle())
