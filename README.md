@@ -1,18 +1,32 @@
-# -AI-controller. — $30 Couch Computing Solution
+:video_game: **-AI-controller.** — Couch Computing, Voice-First
+============================================================
 
-**Plug in an Xbox/PlayStation controller → talk to AI with voice commands → hear responses. No keyboard. No mouse.**
+**Talk to your computer from the couch. No keyboard. No mouse. Just a controller and headphones.**
 
-## What This Is
+Plug in an Xbox/PlayStation controller, put on a headset, and run your entire desktop by voice. Press a trigger to talk. The AI types for you, reads answers back, and never makes you get up.
 
-A standalone, power-loss safe AI controller that turns your gamepad into a voice-controlled computer interface. Works out of the box on Linux (Ubuntu/Debian/Mint), with partial macOS support and manual Windows setup.
+---
 
-### Features
-- **Universal Controller Support**: Works with Xbox, PlayStation, or any USB gamepad
-- **Voice Control**: Press Right Trigger (RT) to talk, release to listen
-- **On-Screen Keyboard**: Use left stick to type without physical keyboard
-- **HUD Display**: See button mappings on screen (controller-legend)
-- **Auto-Profile Switching**: Browser focus → browser layout, Kodi → TV remote layout
-- **Persistent State**: All settings saved in git, survives power loss
+## What You Get
+
+- :speech_balloon: **Push-to-talk voice control** — Right Trigger → record → transcript → typed into any app
+- :keyboard: **Floating on-screen keyboard** — Type with the left stick, A button, and on-screen keys
+- :joystick: **Controller HUD** — See your button mappings as a floating overlay
+- :sound: **Voice response** — The AI talks back through your headphones
+- :gear: **Mode buttons** — PRO, BUBBLY, CASUAL, BOLD, BIG text styles
+- :microphone: **Voice packs** — Joe included free; premium voices as unlockable packs
+- :inbox_tray: **Power-loss safe** — systemd services restart everything on boot
+
+---
+
+## Perfect For
+
+- Gaming from the couch and needing to look things up without leaving the game
+- Accessibility — control a PC hands-free with a controller you already own
+- Streamers who want voice-to-chat without a keyboard on their lap
+- Anyone who wants an AI assistant that actually talks back
+
+---
 
 ## Quick Start
 
@@ -22,63 +36,23 @@ cd '-AI-controller.'
 bash install.sh
 ```
 
-## Installation Steps
+1. Plug in your controller
+2. Put on headphones
+3. Press **Right Trigger** and talk
+4. Hear the AI respond
 
-1. **Run installer**: `bash install.sh`
-2. **Connect controller**: Plug in Xbox/PlayStation controller
-3. **AntimicroX auto-starts**: First run downloads and sets up AntiMicroX
-4. **Profiles auto-activate**: Browser → browser layout, Kodi → TV remote
-5. **Push-to-talk**: Right Trigger (RT) = F13 key (bind to your voice software)
+---
 
-## Pricing & Release
+## Pricing
 
-- **Price**: $30 (one-time payment)
-- **What you get**: Complete standalone AI controller archive — scripts, profiles, STT/TTS configs, systemd units, docs, and hardware workarounds
-- **License**: MIT (free to use, modify, and distribute)
-- **Consolidated from**: `ai-controller-profile` — this repo is now the canonical source
+- **$30** — one-time, complete archive
+- **MIT licensed** — use it, modify it, resell your own builds
+- **Voice packs sold separately** — premium Piper voices unlock from the keyboard shelf
+
+---
 
 ## Support
 
-- **Documentation**: `AI_CONTROLLER_COMPLETE_REFERENCE.md`
-- **Troubleshooting**: Check systemd services with `systemctl --user status antimicrox-autoload.service voice-bridge.service ptt-pynput.service`
-- **Contact**: Elijah (github.com/ebey317)
-
-## System Requirements
-
-- **OS**: Linux (Ubuntu/Debian/Mint) - fully supported
-- **Hardware**: 
-  - Controller (Xbox/PS/USB gamepad)
-  - Microphone (built-in or external)
-  - Speaker/headphones
-- **Dependencies**: 
-  - Python 3.7+
-  - AntiMicroX (auto-installed)
-  - Git (for version control)
-
-## How It Works
-
-1. **Controller**: AntiMicroX maps controller buttons to keyboard events
-2. **Voice**: ptt_pynput.py listens for F13 (RT button) and records audio
-3. **STT**: voice-bridge.py sends audio to Groq Whisper for transcription
-4. **Agent**: Transcript sent to AI agent (Hermes or any LLM API)
-5. **TTS**: Agent response played back through speakers/headphones
-
-## Power Loss Safety
-
-All configuration files are saved on disk. After power loss:
-- Machine boots normally
-- AntiMicroX auto-starts via systemd
-- Profiles auto-load based on last active window
-- No data loss - everything is git-tracked
-
-## Getting Started
-
-1. Clone this repo
-2. Run `bash install.sh`
-3. Plug in your controller
-4. Press Right Trigger (RT) to start talking
-5. Say "What's the weather?" and hear the response
-
-## License
-
-MIT License - use it for personal or commercial purposes.
+- Full reference: `AI_CONTROLLER_COMPLETE_REFERENCE.md`
+- Voice packs: `voices/README.md`
+- Issues: github.com/ebey317/-AI-controller.
