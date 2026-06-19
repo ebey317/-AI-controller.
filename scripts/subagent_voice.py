@@ -29,7 +29,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 import voice_toggle
-from ai_controller_paths import config_dir, ensure_config_dir
+from ai_controller_paths import config_dir, ensure_config_dir, load_env
 
 ensure_config_dir()
 PERSONAS_DIR = os.path.join(SCRIPT_DIR, "personas")
@@ -39,8 +39,22 @@ OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:fast")
 VOICE_BRIDGE_URL = os.environ.get("VOICE_BRIDGE_URL", "http://localhost:8002/voice")
 
+# Audio input is configurable like the rest of the stack.
+_AUDIO_INPUT = load_env().get("AUDIO_INPUT", "")
+_PAREC_DEVICE_ARGS = ["--device", _AUDIO_INPUT] if _AUDIO_INPUT else []
+
 SAMPLE_RATE = 16000
 CHANNELS = 1
+
+# Say one of these words to switch personas mid-conversation.
+KEYWORD_PERSONAS = {
+    "agent": "agent",
+    "casual": "casual",
+    "chatty": "companion",
+    "companion": "companion",
+    "code": "coder-coach",
+    "coach": "coder-coach",
+}
 
 recording = False
 rec_proc = None
@@ -142,10 +156,13 @@ def start_recording():
         return
     rawfile = tempfile.mktemp(suffix=".raw", dir="/tmp")
     wavfile = tempfile.mktemp(suffix=".wav", dir="/tmp")
+    rec_cmd = [
+        "parec",
+        "--rate", str(SAMPLE_RATE), "--channels", str(CHANNELS),
+        "--format", "s16le", "--raw", rawfile,
+    ] + _PAREC_DEVICE_ARGS
     rec_proc = subprocess.Popen(
-        ["parec", "--device=alsa_input.usb-Microsoft_Controller_3039373130383038333134313433-00.mono-fallback",
-         "--rate", str(SAMPLE_RATE), "--channels", str(CHANNELS),
-         "--format", "s16le", "--raw", rawfile],
+        rec_cmd,
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     recording = True
     print("  Listening...")
@@ -199,11 +216,27 @@ def main():
     voice = persona.get("voice")
     model = persona.get("model", OLLAMA_MODEL)
 
+    current_persona = persona
+    current_pid = args.persona
     messages = [{"role": "system", "content": system_prompt}]
 
-    print(f"Starting sub-agent: {persona.get('name', args.persona)}")
+    print(f"Starting sub-agent: {current_persona.get('name', current_pid)}")
     print("Press Enter to talk. Press Ctrl+C to exit.")
-    speak(persona.get("greeting", "Hello. I'm here to talk."), voice=voice)
+    speak(current_persona.get("greeting", "Hello. I'm here to talk."), voice=voice)
+
+    def switch_persona(new_pid):
+        nonlocal current_persona, current_pid, voice, model, messages
+        new_cfg = load_persona(new_pid)
+        if not is_unlocked(new_pid, new_cfg):
+            speak(f"Persona '{new_pid}' is locked.", voice=voice)
+            return
+        current_pid = new_pid
+        current_persona = new_cfg
+        voice = current_persona.get("voice")
+        model = current_persona.get("model", OLLAMA_MODEL)
+        messages = [{"role": "system", "content": current_persona.get("system_prompt", "You are a helpful assistant.")}]
+        print(f"Switched to: {current_persona.get('name', current_pid)}")
+        speak(current_persona.get("greeting", f"Switched to {current_pid} mode."), voice=voice)
 
     try:
         while True:
@@ -226,6 +259,18 @@ def main():
                 continue
 
             print(f"You: {user_text}")
+
+            # Keyword persona switching — say "agent", "casual", "code", etc.
+            lowered = user_text.lower()
+            switched = False
+            for keyword, target_pid in KEYWORD_PERSONAS.items():
+                if keyword in lowered and target_pid != current_pid:
+                    switch_persona(target_pid)
+                    switched = True
+                    break
+            if switched:
+                continue
+
             messages.append({"role": "user", "content": user_text})
 
             response = chat_with_ollama(messages, model)
