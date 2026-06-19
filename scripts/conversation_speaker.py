@@ -8,9 +8,10 @@ Keeps speech from flooding the room:
 - deduplicates repeats within a window
 
 Modes:
-    --say "text"            Speak one message immediately
-    --tail <file>           Watch a log file and speak new lines
-    --telegram              Poll a Telegram bot for new messages
+    say "text"              Speak one message immediately
+    tail <file>             Watch a log file and speak new lines
+    telegram                Poll a Telegram bot for new messages
+    loop                    Repeat specific messages for a set duration
 """
 import argparse
 import json
@@ -130,6 +131,35 @@ def cmd_say(args):
     speaker.speak(args.text)
 
 
+def cmd_loop(args):
+    speaker = Speaker()
+    messages = list(args.message or [])
+    if args.messages_file:
+        try:
+            with open(args.messages_file, "r", encoding="utf-8") as f:
+                messages.extend(line.strip() for line in f if line.strip())
+        except Exception as exc:
+            print(f"[error] could not read messages file: {exc}", file=sys.stderr)
+            sys.exit(1)
+    if not messages:
+        print("[error] no messages provided; use --message or --messages-file", file=sys.stderr)
+        sys.exit(1)
+
+    end = time.time() + args.duration
+    idx = 0
+    print(f"[loop] running for {args.duration}s, interval {args.interval}s, {len(messages)} message(s)")
+    while time.time() < end:
+        msg = messages[idx % len(messages)]
+        speaker.speak(msg)
+        idx += 1
+        remaining = args.interval
+        while remaining > 0 and time.time() < end:
+            step = min(remaining, 1.0)
+            time.sleep(step)
+            remaining -= step
+    speaker.speak("Loop finished.")
+
+
 def cmd_tail(args):
     speaker = Speaker()
     path = os.path.abspath(args.file)
@@ -235,6 +265,12 @@ def main():
 
     p_tg = sub.add_parser("telegram", help="Poll Telegram and speak messages")
 
+    p_loop = sub.add_parser("loop", help="Repeat specific messages for a set duration")
+    p_loop.add_argument("--duration", type=int, default=7200, help="Total seconds to run (default 7200 = 2 hours)")
+    p_loop.add_argument("--interval", type=int, default=600, help="Seconds between messages (default 600 = 10 min)")
+    p_loop.add_argument("--message", action="append", help="Message to speak; repeatable")
+    p_loop.add_argument("--messages-file", help="File with one message per line")
+
     args = parser.parse_args()
     if args.command == "say":
         cmd_say(args)
@@ -242,6 +278,8 @@ def main():
         cmd_tail(args)
     elif args.command == "telegram":
         cmd_telegram(args)
+    elif args.command == "loop":
+        cmd_loop(args)
     else:
         parser.print_help()
         sys.exit(1)
