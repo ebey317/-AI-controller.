@@ -18,115 +18,106 @@
     </names>
     <sets>
         <set index="1">
-            <!-- Left Stick: smooth mouse movement -->
+            <!-- Left Stick = Smooth Mouse Move -->
             <stick index="1">
                 <deadZone>6500</deadZone>
                 <maxZone>28000</maxZone>
-                <stickbutton index="7">
-                    <slots><slot><code>3</code><mode>mousemovement</mode></slot></slots>
-                </stickbutton>
-                <stickbutton index="5">
-                    <slots><slot><code>2</code><mode>mousemovement</mode></slot></slots>
-                </stickbutton>
                 <stickbutton index="3">
                     <slots><slot><code>4</code><mode>mousemovement</mode></slot></slots>
                 </stickbutton>
                 <stickbutton index="1">
                     <slots><slot><code>1</code><mode>mousemovement</mode></slot></slots>
                 </stickbutton>
+                <stickbutton index="7">
+                    <slots><slot><code>3</code><mode>mousemovement</mode></slot></slots>
+                </stickbutton>
+                <stickbutton index="5">
+                    <slots><slot><code>2</code><mode>mousemovement</mode></slot></slots>
+                </stickbutton>
             </stick>
 
-            <!-- Right Stick: scroll wheel -->
+            <!-- Right Stick = Mouse Scroll Wheel (vertical) -->
             <stick index="2">
                 <deadZone>6500</deadZone>
                 <maxZone>28000</maxZone>
-                <stickbutton index="5">
-                    <slots><slot><code>5</code><mode>mousebutton</mode></slot></slots>
-                </stickbutton>
                 <stickbutton index="1">
                     <slots><slot><code>4</code><mode>mousebutton</mode></slot></slots>
                 </stickbutton>
+                <stickbutton index="5">
+                    <slots><slot><code>5</code><mode>mousebutton</mode></slot></slots>
+                </stickbutton>
             </stick>
 
-            <!-- D-Pad: arrow keys -->
+            <!-- D-Pad = Arrow Keys -->
             <dpad index="1">
-                <dpadbutton index="8">
-                    <slots><slot><code>0x1000012</code><mode>keyboard</mode></slot></slots>
-                </dpadbutton>
-                <dpadbutton index="4">
-                    <slots><slot><code>0x1000015</code><mode>keyboard</mode></slot></slots>
-                </dpadbutton>
-                <dpadbutton index="2">
-                    <slots><slot><code>0x1000014</code><mode>keyboard</mode></slot></slots>
-                </dpadbutton>
+                <!-- Up -->
                 <dpadbutton index="1">
                     <slots><slot><code>0x1000013</code><mode>keyboard</mode></slot></slots>
                 </dpadbutton>
+                <!-- Down -->
+                <dpadbutton index="2">
+                    <slots><slot><code>0x1000015</code><mode>keyboard</mode></slot></slots>
+                </dpadbutton>
+                <!-- Left -->
+                <dpadbutton index="4">
+                    <slots><slot><code>0x1000012</code><mode>keyboard</mode></slot></slots>
+                </dpadbutton>
+                <!-- Right -->
+                <dpadbutton index="8">
+                    <slots><slot><code>0x1000014</code><mode>keyboard</mode></slot></slots>
+                </dpadbutton>
             </dpad>
 
-            <!-- Left Trigger: hold Ctrl -->
+            <!-- LT = Ctrl (hold for copy/paste) -->
             <trigger index="5">
+                <deadZone>2000</deadZone>
                 <throttle>positivehalf</throttle>
                 <triggerbutton index="2">
                     <slots><slot><code>0x1000021</code><mode>keyboard</mode></slot></slots>
                 </triggerbutton>
             </trigger>
 
-            <!-- Right Trigger: STT dictation (F13) -->
+            <!-- RT = F13 (STT, do not change) -->
             <trigger index="6">
+                <deadZone>2000</deadZone>
                 <throttle>positivehalf</throttle>
                 <triggerbutton index="2">
                     <slots><slot><code>0x100003c</code><mode>keyboard</mode></slot></slots>
                 </triggerbutton>
             </trigger>
 
-            <!-- A: Left-Click -->
+            <!-- A = Left-Click -->
             <button index="1">
                 <slots><slot><code>1</code><mode>mousebutton</mode></slot></slots>
             </button>
 
-            <!-- B: Backspace -->
+            <!-- B = Backspace -->
             <button index="2">
                 <slots><slot><code>0x1000003</code><mode>keyboard</mode></slot></slots>
             </button>
 
-            <!-- X: Delete -->
+            <!-- X = Delete -->
             <button index="3">
                 <slots><slot><code>0x1000007</code><mode>keyboard</mode></slot></slots>
             </button>
 
-            <!-- Y: Super key -->
+            <!-- Y = Super (Windows Key) -->
             <button index="4">
-                <slots><slot><code>0x1000022</code><mode>keyboard</mode></slot></slots>
+                <slots><slot><code>0x1000053</code><mode>keyboard</mode></slot></slots>
             </button>
 
-            <!-- LB: Hold Shift -->
+            <!-- LB = Shift -->
             <button index="5">
                 <slots><slot><code>0x1000020</code><mode>keyboard</mode></slot></slots>
             </button>
 
-            <!-- RB: Right-Click -->
+            <!-- RB = Right-Click -->
             <button index="6">
                 <slots><slot><code>3</code><mode>mousebutton</mode></slot></slots>
             </button>
 
-            <!-- Menu: Tab -->
+            <!-- View = Toggle Onboard Keyboard -->
             <button index="7">
-                <slots><slot><code>0x1000001</code><mode>keyboard</mode></slot></slots>
-            </button>
-
-            <!-- LS Click: Spacebar -->
-            <button index="8">
-                <slots><slot><code>0x20</code><mode>keyboard</mode></slot></slots>
-            </button>
-
-            <!-- RS Click: Enter -->
-            <button index="9">
-                <slots><slot><code>0x1000004</code><mode>keyboard</mode></slot></slots>
-            </button>
-
-            <!-- View: Toggle on-screen keyboard -->
-            <button index="10">
                 <slots>
                     <slot>
                         <path>__AI_CONTROLLER_DIR__/scripts/toggle-slide-keyboard.sh</path>
@@ -135,12 +126,27 @@
                 </slots>
             </button>
 
-            <!-- Xbox Guide: Super+Tab (window switcher) -->
-            <button index="11">
+            <!-- Menu = Tab -->
+            <button index="8">
+                <slots><slot><code>0x1000001</code><mode>keyboard</mode></slot></slots>
+            </button>
+
+            <!-- Guide = Super+Tab -->
+            <button index="9">
                 <slots>
-                    <slot><code>0x1000022</code><mode>keyboard</mode></slot>
+                    <slot><code>0x1000053</code><mode>keyboard</mode></slot>
                     <slot><code>0x1000001</code><mode>keyboard</mode></slot>
                 </slots>
+            </button>
+
+            <!-- LS Click = Spacebar -->
+            <button index="10">
+                <slots><slot><code>0x20</code><mode>keyboard</mode></slot></slots>
+            </button>
+
+            <!-- RS Click = Enter -->
+            <button index="11">
+                <slots><slot><code>0x1000004</code><mode>keyboard</mode></slot></slots>
             </button>
         </set>
     </sets>
