@@ -34,14 +34,17 @@ def toggle():
     return next_voice
 
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 def speak(text, voice=None):
     voice = voice or load_voice()
     if voice == "joe":
+        model_path = os.path.join(SCRIPT_DIR, "voices", "joe", "en_US-joe-medium.onnx")
         subprocess.run(
-            ["piper", "--model", "voices/joe/en_US-joe-medium.onnx",
+            ["piper", "--model", model_path,
              "--output_file", "/tmp/ai_controller_tts.wav"],
-            input=text.encode(), check=False,
-            cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            input=text.encode(), check=False
         )
         subprocess.run(["mpv", "--no-video", "/tmp/ai_controller_tts.wav"], check=False)
     else:
