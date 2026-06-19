@@ -1,6 +1,6 @@
 # AI Controller — Promotional Copy
 
-Use these snippets for GitHub, Gumroad, social media, or anywhere you want to sell the AI controller.
+Use these snippets for GitHub, Gumroad, social media, or anywhere you want to sell AI Controller.
 
 ---
 
@@ -26,8 +26,6 @@ What if your controller could run your whole computer?
 
 **AI Controller** turns any corded or Bluetooth gamepad into a voice-driven computer interface. Press Right Trigger to talk. Release, and your speech becomes typed text in whatever app has focus. Need to type manually? Toggle the floating on-screen keyboard with the View button and use the left stick.
 
-No keyboard. No mouse. No getting up from the couch.
-
 ### Base product ($30)
 - Microphone push-to-talk with dynamic text output
 - Floating on-screen keyboard
@@ -35,15 +33,15 @@ No keyboard. No mouse. No getting up from the couch.
 - Universal controller support — Xbox, PlayStation, DualShock, USB, Bluetooth
 - Power-loss-safe systemd services
 
-### Optional add-ons
-- **Voice response** — the AI talks back through your headphones
-- **Voice packs** — free Joe voice + premium unlockable Piper voices
-- **Dictation output modes** — PRO, BUBBLY, CASUAL, BOLD, BIG text transforms
+### Separate add-on markets
+- **Voice market** — AI voice response + Piper voice packs (Joe free, premium unlockable)
+- **Dictation output market** — PRO, BUBBLY, CASUAL, BOLD, BIG text transforms
+- **Super packs** — voice + dictation bundles (coming later)
 
 ### Works with
 - Couch gaming, accessibility, streaming, hands-free browsing
 
-**$30. One time. Yours forever.**
+**$30 base. Add-ons sold separately.**
 
 ---
 
@@ -51,13 +49,13 @@ No keyboard. No mouse. No getting up from the couch.
 
 1. I built an AI controller that lets me run my entire PC from the couch with my voice. Any Xbox, PlayStation, or USB controller. No keyboard. No mouse.
 
-2. Base product: push-to-talk microphone, floating keyboard, controller legend overlay, and dynamic text output into whatever app is open. $30 one-time.
+2. Base product: microphone push-to-talk, dynamic text output into the active app, floating keyboard, controller legend overlay, and universal gamepad support. $30 one-time.
 
-3. Add-ons make it better: voice response so the AI talks back, voice packs with premium Piper voices, and dictation modes like BUBBLY, CASUAL, BOLD, BIG.
+3. Two separate add-on markets: voice packs (AI talks back, premium Piper voices) and dictation output modes (BUBBLY, CASUAL, BOLD, BIG). Sold individually.
 
 4. It runs on Linux, is MIT licensed, and is power-loss safe thanks to systemd. I use it for couch gaming and accessibility testing.
 
-5. $30 base + optional add-ons. If you want couch computing that actually listens, this is it. github.com/ebey317/ai-controller
+5. $30 base + voice add-ons + dictation add-ons. If you want couch computing that actually listens, this is it. github.com/ebey317/ai-controller
 
 ---
 
@@ -88,7 +86,9 @@ No keyboard. No mouse. No getting up from the couch.
 
 I got tired of balancing a keyboard on my lap while gaming on the couch. So I built a system that lets me control my Linux desktop with any Xbox, PlayStation, or USB controller plus my voice.
 
-Base product ($30): microphone push-to-talk, dynamic text output into the active app, floating on-screen keyboard, controller legend overlay, and universal gamepad support. Optional add-ons include voice response, premium Piper voice packs, and text personality modes.
+Base product ($30): microphone push-to-talk, dynamic text output into the active app, floating on-screen keyboard, controller legend overlay, and universal gamepad support.
+
+Add-ons are split into two markets: voice packs (AI talks back, premium Piper voices) and dictation output modes (PRO, BUBBLY, CASUAL, BOLD, BIG).
 
 It's MIT licensed and power-loss safe. Looking for feedback from anyone else trying to compute from the couch.
 

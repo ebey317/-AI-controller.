@@ -3,31 +3,33 @@
 
 **Talk to your computer from the couch. No keyboard. No mouse. Just a controller and headphones.**
 
-Plug in any corded or Bluetooth controller — Xbox, PlayStation, DualShock, generic USB — put on a headset, and run your entire desktop by voice. Press a trigger to talk. The AI types for you, reads answers back, and never makes you get up.
+Plug in any corded or Bluetooth controller — Xbox, PlayStation, DualShock, generic USB — put on a headset, and run your entire desktop by voice. Press a trigger to talk. A floating keyboard and controller legend keep you in control without getting up.
 
 ---
 
-## What You Get (Base Product — $30)
+## Base Product — $30
 
 The base AI Controller gives you full controller-driven computer control:
 
 - :speech_balloon: **Microphone push-to-talk** — press Right Trigger, speak, release
+- :globe_with_meridians: **Dynamic output** — your speech becomes typed text in the active app
 - :keyboard: **Floating on-screen keyboard** — toggle it with the View button, type with the stick
 - :joystick: **Floating controller legend** — see your button mappings as an overlay
-- :globe_with_meridians: **Dynamic output** — your speech becomes typed text in whatever app has focus
-- :electric_plug: **Universal controller support** — Xbox, PlayStation, DualShock, Bluetooth, USB
+- :electric_plug: **Universal controller support** — Xbox, PlayStation, DualShock, USB, Bluetooth
 - :gear: **Power-loss safe** — systemd services restart everything on boot
 
 ---
 
-## Optional Add-Ons
+## Separate Add-On Markets
 
-These upgrade the base experience and can be sold separately:
+These are sold individually. They can also be bundled later as **super packs**.
 
+### Voice Market
 - :sound: **Voice response** — the AI talks back through your headphones
 - :microphone: **Voice packs** — Joe included free; premium Piper voices unlock from the shelf
-- :sparkles: **Dictation output modes** — PRO, BUBBLY, CASUAL, BOLD, BIG text personality transforms
-- :inbox_tray: **Auto-updates** — one command pulls the latest release
+
+### Dictation Output Market
+- :sparkles: **Output modes** — PRO, BUBBLY, CASUAL, BOLD, BIG text personality transforms
 
 ---
 
@@ -58,7 +60,9 @@ bash install.sh
 ## Pricing
 
 - **$30** — Base AI Controller (one-time)
-- **Voice packs / mode packs** — sold separately as unlockable add-ons
+- **Voice packs** — sold separately
+- **Dictation output modes** — sold separately
+- **Super packs** — voice + mode bundles (coming later)
 - **MIT licensed** — use it, modify it, resell your own builds
 
 ---
