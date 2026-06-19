@@ -7,7 +7,15 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gtk, Gdk, GLib
-import cairo, os, glob
+import cairo, os, glob, fcntl, sys
+
+# Singleton: bail out if another instance is already running.
+_singleton_fd = os.open("/tmp/controller-legend.lock", os.O_CREAT | os.O_RDWR)
+try:
+    fcntl.flock(_singleton_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except BlockingIOError:
+    print("Another controller-legend instance is already running; exiting.", flush=True)
+    sys.exit(0)
 
 PROFILE_STATE = os.path.expanduser("~/.controller_current_profile")
 PAGE_STATE = os.path.expanduser("~/.controller_legend_page")

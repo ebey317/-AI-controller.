@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
-import sys, subprocess, os, tempfile, json, threading, wave, struct, time, re, random
+import sys, subprocess, os, tempfile, json, threading, wave, struct, time, re, random, fcntl
 from datetime import datetime
 import urllib.request
 import urllib.error
 from pynput import keyboard
+
+# Singleton: bail out if another instance is already running.
+_singleton_fd = os.open("/tmp/ptt_pynput.lock", os.O_CREAT | os.O_RDWR)
+try:
+    fcntl.flock(_singleton_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except BlockingIOError:
+    print("Another ptt_pynput instance is already running; exiting.", flush=True)
+    sys.exit(0)
 
 endpoint = "http://localhost:8002/voice"
 BRIDGE_URL = os.environ.get("BRIDGE_URL", "http://127.0.0.1:8080")
