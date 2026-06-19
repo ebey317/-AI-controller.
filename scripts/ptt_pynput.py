@@ -409,6 +409,11 @@ _DEBOUNCE_MS = 200
 _TYPE_SETTLE_MS = 50
 # Type as fast as xdotool allows to minimize the window for controller interference.
 _XDOTOOL_TYPE_DELAY_MS = 0
+# Short accidental trigger presses often hallucinate these words from fan/mic noise.
+_SHORT_HALLUCINATIONS = {
+    "thank you", "thanks", "thank", "check", "yellow", "yep", "yup",
+    "mm", "hmm", "um", "uh", "mhm", "okay", "ok",
+}
 
 
 def _active_window():
@@ -550,6 +555,13 @@ def stop_and_send():
         # transcribe_only returns {"text": ...}; execute returns {"transcript": ..., "response": ...}
         transcript = data.get('text', data.get('transcript', ''))
         response = data.get('response', data.get('error', '')).strip()
+
+        # Short accidental trigger presses often produce hallucinated single words
+        # from controller/mic noise. Skip them instead of typing garbage.
+        clean = transcript.lower().strip(".,!?;:\"'")
+        if duration < 1.5 and clean in _SHORT_HALLUCINATIONS:
+            print(f"  Skipped short-noise hallucination: '{transcript}'", flush=True)
+            transcript = ""
 
         # Fast personal-vocabulary autocorrect (applies to PRO and BUBBLY)
         transcript = _apply_vocabulary(transcript)
