@@ -1,4 +1,4 @@
-# AI Controller Profile - $10 Couch Computing Solution
+# -AI-controller. — $30 Couch Computing Solution
 
 **Plug in an Xbox/PlayStation controller → talk to AI with voice commands → hear responses. No keyboard. No mouse.**
 
@@ -17,8 +17,8 @@ A standalone, power-loss safe AI controller that turns your gamepad into a voice
 ## Quick Start
 
 ```bash
-git clone https://github.com/yourusername/ai-controller-profile
-cd ai-controller-profile
+git clone 'https://github.com/ebey317/-AI-controller..git'
+cd '-AI-controller.'
 bash install.sh
 ```
 
@@ -32,9 +32,10 @@ bash install.sh
 
 ## Pricing & Release
 
-- **Price**: $10 (one-time payment)
-- **What you get**: Complete installer package with all scripts, profiles, and documentation
+- **Price**: $30 (one-time payment)
+- **What you get**: Complete standalone AI controller archive — scripts, profiles, STT/TTS configs, systemd units, docs, and hardware workarounds
 - **License**: MIT (free to use, modify, and distribute)
+- **Consolidated from**: `ai-controller-profile` — this repo is now the canonical source
 
 ## Support
 
