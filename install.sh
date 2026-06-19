@@ -121,6 +121,7 @@ mkdir -p "${ANTIMICROX_PROFILE_DIR}"
 cp "${INSTALL_DIR}/profiles/ai-desktop.amgp" "${ANTIMICROX_PROFILE_DIR}/"
 cp "${INSTALL_DIR}/profiles/ai-browser.amgp" "${ANTIMICROX_PROFILE_DIR}/" 2>/dev/null || true
 cp "${INSTALL_DIR}/profiles/ai-iptv.amgp" "${ANTIMICROX_PROFILE_DIR}/" 2>/dev/null || true
+cp "${INSTALL_DIR}/profiles/ai-youtube-tv.amgp" "${ANTIMICROX_PROFILE_DIR}/" 2>/dev/null || true
 
 # Substitute placeholder paths with the real install directory.
 sed -i "s|__AI_CONTROLLER_DIR__|${INSTALL_DIR}|g" "${ANTIMICROX_PROFILE_DIR}/ai-desktop.amgp"

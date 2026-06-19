@@ -33,6 +33,7 @@ export QT_NO_NETWORK_PROBING=1
 
 DESKTOP_PROFILE="$PROFILE_DIR/ai-desktop.amgp"
 BROWSER_PROFILE="$PROFILE_DIR/ai-browser.amgp"
+YOUTUBE_TV_PROFILE="$PROFILE_DIR/ai-youtube-tv.amgp"
 IPTV_PROFILE="$PROFILE_DIR/ai-iptv.amgp"
 
 # Ensure F13-F18 have X11 keycodes (not in default keymap).
@@ -47,6 +48,15 @@ DISPLAY=:0 xmodmap -e "keycode 230 = F18" 2>/dev/null || true
 # Window-class regexes (lowercased) → profile category
 is_browser() { [[ "$1" =~ (chrome|chromium|firefox|brave|edge|opera) ]]; }
 is_media()   { [[ "$1" =~ (mpv|vlc|kodi|hypnotix|stremio|smplayer|celluloid) ]]; }
+
+active_window_title() {
+    xdotool getactivewindow getwindowname 2>/dev/null || true
+}
+
+is_youtube_tv() {
+    local title="${1,,}"  # lower-case
+    [[ "$title" =~ youtube[[:space:]]tv ]] || [[ "$title" =~ youtube\.com/tv ]]
+}
 
 current_profile=""
 
@@ -145,8 +155,14 @@ trap 'kill $WATCH_PID 2>/dev/null; rm -f /tmp/controller_state_changed; kill_ant
 
 while true; do
     if controller_present; then
-        # User wants a single general profile across all apps. Always load desktop.
-        load "$DESKTOP_PROFILE" "Desktop"
+        # Default to the single general desktop profile, but switch to a
+        # specialized layout when YouTube TV is in focus.
+        title=$(active_window_title)
+        if is_youtube_tv "$title"; then
+            load "$YOUTUBE_TV_PROFILE" "YouTube TV"
+        else
+            load "$DESKTOP_PROFILE" "Desktop"
+        fi
     else
         # No controller → make sure nothing is running, reset state
         if [[ -n "$current_profile" ]]; then
