@@ -97,6 +97,13 @@ button {
 button:hover { background-color: #2f2f3a; }
 button.special { background-color: #1a2226; color: #FF6A00; border-color: #4a3318; }
 button.mode { background-color: #2a1a0a; color: #FF6A00; border-color: #FF6A00; font-weight: bold; padding: 2px 10px; }
+button.mode-active { background-color: #FF6A00; color: #0d0d12; border-color: #FF6A00; font-weight: bold; padding: 2px 10px; }
+#voice-shelf { background-color: rgba(255,106,0,0.08); border-left: 1px solid #FF6A00; border-radius: 0 12px 12px 0; padding: 6px; }
+.shelf-title { color: #FF6A00; font-weight: bold; font-size: 11px; margin-bottom: 4px; }
+button.voice { background-color: #1a1a22; color: #e8e8e8; border-color: #3a3a44; font-size: 12px; min-height: 28px; }
+button.voice:hover { background-color: #2a2a34; }
+button.voice-active { background-color: #FF6A00; color: #0d0d12; border-color: #FF6A00; font-size: 12px; font-weight: bold; min-height: 28px; }
+button.voice-locked { background-color: #15151a; color: #666670; border-color: #2a2a30; font-size: 12px; min-height: 28px; }
 """
 
 
@@ -116,8 +123,9 @@ def send(key, ctrl=False, alt=False):
 
 
 class SlideKeyboard(Gtk.Window):
-    WIDTH = 920
-    HEIGHT = 280
+    # Wider to fit the key grid plus a right-hand voice-profile shelf.
+    WIDTH = 1080
+    HEIGHT = 300
     POP_OFFSET = 36  # px it rises from on pop-in, for the "pop" feel
 
     def __init__(self):
@@ -146,7 +154,7 @@ class SlideKeyboard(Gtk.Window):
 
         # Outer styled panel (the rounded orange-bordered box) wraps the key
         # grid, matching the legend HUD's visual language.
-        self.panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.panel = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.panel.set_name("panel")
         self.panel.set_margin_start(10)
         self.panel.set_margin_end(10)
@@ -154,30 +162,67 @@ class SlideKeyboard(Gtk.Window):
         self.panel.set_margin_bottom(10)
         self.add(self.panel)
 
-        # Header bar: PRO / BUBBLY mode toggle for voice transcription style
-        self.header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.header.set_margin_start(8)
-        self.header.set_margin_end(8)
-        self.header.set_margin_top(6)
-        self.panel.pack_start(self.header, False, False, 0)
+        # LEFT COLUMN: mode bar across the top + key grid below it.
+        self.left_col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.panel.pack_start(self.left_col, True, True, 0)
 
-        self.voice_btn = Gtk.Button(label=self._voice_label())
-        self.voice_btn.get_style_context().add_class("mode")
-        self.voice_btn.connect("clicked", self._on_voice_toggle)
-        self.header.pack_start(self.voice_btn, False, False, 0)
+        # Mode bar: buttons left-to-right, ending at PRO.
+        self.mode_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.mode_bar.set_margin_start(8)
+        self.mode_bar.set_margin_end(8)
+        self.mode_bar.set_margin_top(6)
+        self.mode_bar.set_spacing(6)
+        self.left_col.pack_start(self.mode_bar, False, False, 0)
 
-        self.mode_btn = Gtk.Button(label=self._mode_label())
-        self.mode_btn.get_style_context().add_class("mode")
-        self.mode_btn.connect("clicked", self._on_mode_toggle)
-        self.header.pack_end(self.mode_btn, False, False, 0)
+        self._mode_buttons = []
+        for mode in ("bubbly", "casual", "pro"):
+            label = "✨ BUBBLY" if mode == "bubbly" else mode.upper()
+            btn = Gtk.Button(label=label)
+            btn.get_style_context().add_class("mode")
+            btn.connect("clicked", self._on_mode_set, mode)
+            self.mode_bar.pack_start(btn, False, False, 0)
+            self._mode_buttons.append((mode, btn))
+        self._refresh_mode_buttons()
 
         self.grid = Gtk.Grid(column_spacing=4, row_spacing=4)
         self.grid.set_margin_start(8)
         self.grid.set_margin_end(8)
         self.grid.set_margin_top(6)
         self.grid.set_margin_bottom(8)
-        self.panel.pack_start(self.grid, True, True, 0)
+        self.left_col.pack_start(self.grid, True, True, 0)
         self._build_keys()
+
+        # RIGHT COLUMN: voice-profile shelf from PRO down to the bottom.
+        self.voice_shelf = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.voice_shelf.set_name("voice-shelf")
+        self.voice_shelf.set_margin_top(6)
+        self.voice_shelf.set_margin_bottom(8)
+        self.voice_shelf.set_margin_end(8)
+        self.panel.pack_start(self.voice_shelf, False, False, 0)
+
+        shelf_title = Gtk.Label(label="VOICE PROFILES")
+        shelf_title.get_style_context().add_class("shelf-title")
+        self.voice_shelf.pack_start(shelf_title, False, False, 0)
+
+        self._voice_buttons = []
+        voices = [
+            ("joe", "Joe", False),
+            ("aria", "Aria", False),
+            ("morgan", "Morgan 🔒", True),
+            ("lexi", "Lexi 🔒", True),
+        ]
+        for voice, label, locked in voices:
+            btn = Gtk.Button(label=label)
+            if locked:
+                btn.get_style_context().add_class("voice-locked")
+                btn.set_sensitive(False)
+                btn.set_tooltip_text("Unlock in the AI Controller store")
+            else:
+                btn.get_style_context().add_class("voice")
+                btn.connect("clicked", self._on_voice_set, voice)
+            self.voice_shelf.pack_start(btn, False, False, 0)
+            self._voice_buttons.append((voice, btn, locked))
+        self._refresh_voice_buttons()
 
         self.sw = screen.get_width()
         self.sh = screen.get_height()
@@ -204,7 +249,7 @@ class SlideKeyboard(Gtk.Window):
         try:
             with open(PTT_MODE_FILE, "r", encoding="utf-8") as f:
                 mode = f.read().strip().lower()
-                if mode in ("pro", "bubbly"):
+                if mode in ("pro", "bubbly", "casual", "formal"):
                     return mode
         except Exception:
             pass
@@ -215,13 +260,19 @@ class SlideKeyboard(Gtk.Window):
         with open(PTT_MODE_FILE, "w", encoding="utf-8") as f:
             f.write(mode)
 
-    def _mode_label(self) -> str:
-        return "BUBBLY ✨" if self._load_ptt_mode() == "bubbly" else "PRO 🎩"
+    def _refresh_mode_buttons(self):
+        current = self._load_ptt_mode()
+        for mode, btn in self._mode_buttons:
+            if mode == current:
+                btn.get_style_context().add_class("mode-active")
+                btn.get_style_context().remove_class("mode")
+            else:
+                btn.get_style_context().add_class("mode")
+                btn.get_style_context().remove_class("mode-active")
 
-    def _on_mode_toggle(self, _widget):
-        new_mode = "bubbly" if self._load_ptt_mode() == "pro" else "pro"
-        self._save_ptt_mode(new_mode)
-        self.mode_btn.set_label(self._mode_label())
+    def _on_mode_set(self, _widget, mode):
+        self._save_ptt_mode(mode)
+        self._refresh_mode_buttons()
 
     def _load_voice(self) -> str:
         try:
@@ -238,16 +289,24 @@ class SlideKeyboard(Gtk.Window):
         with open(VOICE_FILE, "w", encoding="utf-8") as f:
             f.write(voice)
 
-    def _voice_label(self) -> str:
-        return self._load_voice().upper()
+    def _refresh_voice_buttons(self):
+        current = self._load_voice()
+        for voice, btn, locked in self._voice_buttons:
+            if locked:
+                continue
+            if voice == current:
+                btn.get_style_context().add_class("voice-active")
+                btn.get_style_context().remove_class("voice")
+            else:
+                btn.get_style_context().add_class("voice")
+                btn.get_style_context().remove_class("voice-active")
 
-    def _on_voice_toggle(self, _widget):
-        new_voice = "aria" if self._load_voice() == "joe" else "joe"
-        self._save_voice(new_voice)
-        self.voice_btn.set_label(self._voice_label())
+    def _on_voice_set(self, _widget, voice):
+        self._save_voice(voice)
+        self._refresh_voice_buttons()
         # Announce the switch
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        subprocess.Popen([sys.executable, os.path.join(script_dir, "voice_toggle.py"), "--speak", f"Switched to {new_voice}."],
+        subprocess.Popen([sys.executable, os.path.join(script_dir, "voice_toggle.py"), "--speak", f"Switched to {voice}."],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def _build_keys(self):
