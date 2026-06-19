@@ -353,6 +353,12 @@ def _build_wav(raw_path: str, wav_path: str):
         wf.writeframes(data)
 
 
+def _mute_tts():
+    """Kill any playing TTS audio so the mic doesn't capture it."""
+    subprocess.run(['pkill', '-f', 'mpv --no-video /tmp/ai_controller_tts'],
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def start_recording():
     global recording, rec_proc, rawfile, wavfile, _last_f13_time, _focus_window
     with lock:
@@ -362,6 +368,8 @@ def start_recording():
         if (now - _last_f13_time) * 1000 < _DEBOUNCE_MS:
             return
         _last_f13_time = now
+        # Mute any agent TTS before we open the mic.
+        _mute_tts()
         # Save the currently focused window so we can restore focus before typing.
         # AntiMicroX or other apps may steal focus during recording.
         _focus_window = _active_window()
