@@ -46,7 +46,7 @@ voices/
 After purchase, drop the model files into `voices/<pack>/` and run:
 
 ```bash
-python3 ~/scripts/voice_toggle.py --unlock <pack>
+python3 "$HOME/ai-controller/scripts/voice_toggle.py" --unlock <pack>
 ```
 
 The keyboard shelf refreshes automatically.
@@ -60,4 +60,4 @@ Piper voices are MIT-licensed and can be used commercially. Download pre-trained
 1. Train or source a Piper voice you have rights to.
 2. Create a `config.json` with `"locked": true` and a price.
 3. Zip the pack folder (without the `.onnx` model for the "locked" listing, or with it for the paid download).
-4. Sell the zip on Gumroad; buyers unzip it into `~/scripts/voices/` and run the unlock command.
+4. Sell the zip on Gumroad; buyers unzip it into `$HOME/ai-controller/voices/` and run the unlock command.

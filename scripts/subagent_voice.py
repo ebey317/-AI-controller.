@@ -25,12 +25,15 @@ import wave
 
 import httpx
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import voice_toggle
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+import voice_toggle
+from ai_controller_paths import config_dir, ensure_config_dir
+
+ensure_config_dir()
 PERSONAS_DIR = os.path.join(SCRIPT_DIR, "personas")
-UNLOCKS_FILE = os.path.expanduser("~/.config/ai_controller_unlocked_personas.json")
+UNLOCKS_FILE = os.path.join(config_dir(), "ai_controller_unlocked_personas.json")
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:fast")

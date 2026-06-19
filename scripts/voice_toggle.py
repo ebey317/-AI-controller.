@@ -14,9 +14,15 @@ import tempfile
 import numpy as np
 from scipy.io import wavfile
 
-STATE_FILE = os.path.expanduser("~/.config/ai_controller_voice")
-UNLOCKS_FILE = os.path.expanduser("~/.config/ai_controller_unlocked_voices.json")
+# Make shared helpers available regardless of cwd.
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+from ai_controller_paths import config_dir, ensure_config_dir
+
+ensure_config_dir()
+STATE_FILE = os.path.join(config_dir(), "ai_controller_voice")
+UNLOCKS_FILE = os.path.join(config_dir(), "ai_controller_unlocked_voices.json")
 VOICES_DIR = os.path.join(SCRIPT_DIR, "voices")
 
 _DEVNULL = subprocess.DEVNULL

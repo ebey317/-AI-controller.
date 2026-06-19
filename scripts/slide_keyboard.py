@@ -32,11 +32,13 @@ from gi.repository import Gtk, Gdk, GLib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import voice_toggle
+from ai_controller_paths import config_dir, ensure_config_dir
 
 # Shared with ptt_pynput.py: PRO = plain text, BUBBLY = cursive + emoji
-PTT_MODE_FILE = os.path.expanduser("~/.config/ptt_mode")
-VOICE_FILE = os.path.expanduser("~/.config/ai_controller_voice")
-INPUT_TARGET_FILE = os.path.expanduser("~/.config/ai_controller_input_target")
+ensure_config_dir()
+PTT_MODE_FILE = os.path.join(config_dir(), "ptt_mode")
+VOICE_FILE = os.path.join(config_dir(), "ai_controller_voice")
+INPUT_TARGET_FILE = os.path.join(config_dir(), "ai_controller_input_target")
 TYPING_STATE_FILE = "/tmp/ptt_typing_state"
 
 ROWS_LOWER = [

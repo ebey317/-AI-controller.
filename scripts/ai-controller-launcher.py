@@ -3,7 +3,7 @@
 ai-controller-launcher.py — Simple GTK launcher and updater for AI Controller.
 
 Run from the desktop or bind to a controller button:
-    python3 ~/scripts/ai-controller-launcher.py
+    python3 "$HOME/ai-controller/scripts/ai-controller-launcher.py"
 
 Features:
 - Start / stop AI Controller services
@@ -122,7 +122,7 @@ class Launcher(Gtk.Window):
             return "Version unknown"
 
     def _service_status(self):
-        services = ["antimicrox-autoload.service", "voice-bridge.service", "ptt-pynput.service"]
+        services = ["antimicrox-autoload.service", "voice-bridge.service", "ptt-pynput.service", "controller-legend.service"]
         running = 0
         for svc in services:
             r = subprocess.run(
@@ -138,13 +138,13 @@ class Launcher(Gtk.Window):
 
     def _on_start(self, _widget):
         subprocess.Popen(
-            ["systemctl", "--user", "start", "antimicrox-autoload.service", "voice-bridge.service", "ptt-pynput.service"],
+            ["systemctl", "--user", "start", "antimicrox-autoload.service", "voice-bridge.service", "ptt-pynput.service", "controller-legend.service"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.status_label.set_text("Starting services...")
 
     def _on_stop(self, _widget):
         subprocess.Popen(
-            ["systemctl", "--user", "stop", "antimicrox-autoload.service", "voice-bridge.service", "ptt-pynput.service"],
+            ["systemctl", "--user", "stop", "antimicrox-autoload.service", "voice-bridge.service", "ptt-pynput.service", "controller-legend.service"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.status_label.set_text("Stopping services...")
 

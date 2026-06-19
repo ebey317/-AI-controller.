@@ -8,7 +8,19 @@
 # Run via: nohup DISPLAY=:0 bash ~/scripts/controller-profile-switcher.sh &
 # Or as the systemd user service antimicrox-autoload (swap ExecStart to this).
 
-ANTIMICROX="/usr/bin/antimicrox"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INSTALL_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Prefer system AntiMicroX; fall back to bundled AppImage.
+if command -v antimicrox &>/dev/null; then
+    ANTIMICROX="$(command -v antimicrox)"
+elif [[ -x "${INSTALL_DIR}/bin/antimicrox.AppImage" ]]; then
+    ANTIMICROX="${INSTALL_DIR}/bin/antimicrox.AppImage"
+else
+    echo "ERROR: AntiMicroX not found. Install it or place antimicrox.AppImage in ${INSTALL_DIR}/bin/" >&2
+    exit 1
+fi
+
 PROFILE_DIR="${HOME}/.config/antimicrox"
 export DISPLAY="${DISPLAY:-:0}"
 
@@ -118,7 +130,7 @@ load() {
     echo "$loader" > "$ANTIMICROX_PIDFILE"
     current_profile="$profile"
     echo "$label" > ~/.controller_current_profile
-    DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+    DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${UID}/bus" \
         notify-send --replace-id=7001 -t 1000 -u low "🎮 ${label^^} MODE" 2>/dev/null || true
     echo "$(date '+%H:%M:%S') → $label ($(basename "$profile"))"
     # Give antimicrox time to initialize joystick device before next loop

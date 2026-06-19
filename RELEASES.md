@@ -24,7 +24,7 @@ If this repo is public, anyone can clone it for free. That breaks the $30 paid-p
    - `ai-controller-latest.tar.gz`
 3. Set the buyer's update URL:
    ```bash
-   echo 'https://raw.githubusercontent.com/ebey317/ai-controller-releases/main' > ~/.config/ai_controller_update_url
+   echo 'https://raw.githubusercontent.com/ebey317/ai-controller-releases/main' > ~/.config/ai-controller/update_url
    ```
 
 ### Option B: Cloud object storage (cheap, direct downloads)
@@ -33,7 +33,7 @@ If this repo is public, anyone can clone it for free. That breaks the $30 paid-p
 - **AWS S3** — standard object storage.
 - **Backblaze B2** — cheap storage, free egress up to a limit.
 
-Upload `VERSION` and `ai-controller-latest.tar.gz` to a public bucket and point `~/.config/ai_controller_update_url` at the bucket URL.
+Upload `VERSION` and `ai-controller-latest.tar.gz` to a public bucket and point `~/.config/ai-controller/update_url` at the bucket URL.
 
 ## Building a release archive
 
@@ -51,7 +51,7 @@ Then upload `VERSION` and `ai-controller-latest.tar.gz` to your public release h
 After the buyer installs the archive, they run:
 
 ```bash
-bash ~/scripts/update.sh
+bash "$HOME/ai-controller/scripts/update.sh"
 ```
 
 Or bind it to a controller button in AntiMicroX.

@@ -13,16 +13,27 @@ except BlockingIOError:
     print("Another ptt_pynput instance is already running; exiting.", flush=True)
     sys.exit(0)
 
+# Make shared helpers available regardless of cwd.
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+from ai_controller_paths import config_dir, ensure_config_dir, load_env
+
 endpoint = "http://localhost:8002/voice"
+
+# Audio input source is configurable so the installer works on any machine.
+_AUDIO_INPUT = load_env().get("AUDIO_INPUT", "")
+_PAREC_DEVICE_ARGS = ["--device", _AUDIO_INPUT] if _AUDIO_INPUT else []
 BRIDGE_URL = os.environ.get("BRIDGE_URL", "http://127.0.0.1:8080")
 SENSEI_SESSION = os.environ.get("SENSEI_SESSION", "focus-engine")
 
 # ---------------------------------------------------------------------------
 # Transcription style toggle (controlled by slide_keyboard.py mode button)
 # ---------------------------------------------------------------------------
-MODE_FILE = os.path.expanduser("~/.config/ptt_mode")
-VOCAB_FILE = os.path.expanduser("~/.config/ptt_vocabulary.json")
-INPUT_TARGET_FILE = os.path.expanduser("~/.config/ai_controller_input_target")
+ensure_config_dir()
+MODE_FILE = os.path.join(config_dir(), "ptt_mode")
+VOCAB_FILE = os.path.join(config_dir(), "ptt_vocabulary.json")
+INPUT_TARGET_FILE = os.path.join(config_dir(), "ai_controller_input_target")
 TYPING_STATE_FILE = "/tmp/ptt_typing_state"
 
 
@@ -470,11 +481,13 @@ def start_recording():
                        env={**os.environ, 'DISPLAY': os.environ.get('DISPLAY', ':0')})
         rawfile = tempfile.mktemp(suffix='.raw', dir='/tmp')
         wavfile = tempfile.mktemp(suffix='.wav', dir='/tmp')
+        rec_cmd = [
+            'stdbuf', '-o0', 'parec',
+            '--rate', str(SAMPLE_RATE), '--channels', str(CHANNELS),
+            '--format', 's16le', '--raw',
+        ] + _PAREC_DEVICE_ARGS
         rec_proc = subprocess.Popen(
-            ['stdbuf', '-o0', 'parec',
-             '--device=alsa_input.usb-Microsoft_Controller_3039373130383038333134313433-00.mono-fallback',
-             '--rate', str(SAMPLE_RATE), '--channels', str(CHANNELS),
-             '--format', 's16le', '--raw'],
+            rec_cmd,
             stdout=open(rawfile, 'wb'), stderr=subprocess.DEVNULL)
         recording = True
         print("  Recording...", flush=True)

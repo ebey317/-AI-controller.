@@ -104,7 +104,6 @@ bash install.sh
 
 ## Support
 
-- Full reference: `AI_CONTROLLER_COMPLETE_REFERENCE.md`
 - Voice packs: `voices/README.md`
 - Releases & updates: `RELEASES.md`
 - Issues: github.com/ebey317/-AI-controller.

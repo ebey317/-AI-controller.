@@ -17,8 +17,15 @@ except BlockingIOError:
     print("Another controller-legend instance is already running; exiting.", flush=True)
     sys.exit(0)
 
-PROFILE_STATE = os.path.expanduser("~/.controller_current_profile")
-PAGE_STATE = os.path.expanduser("~/.controller_legend_page")
+# Make shared helpers available regardless of cwd.
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+from ai_controller_paths import config_dir, ensure_config_dir
+
+ensure_config_dir()
+PROFILE_STATE = os.path.join(config_dir(), "controller_current_profile")
+PAGE_STATE = os.path.join(config_dir(), "controller_legend_page")
 TYPING_STATE_FILE = "/tmp/ptt_typing_state"
 
 # All button mappings organized by profile (can span multiple pages)

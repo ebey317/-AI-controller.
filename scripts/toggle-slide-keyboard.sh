@@ -6,8 +6,9 @@
 # Second press: sends SIGUSR1 to toggle it hidden
 # Subsequent presses: SIGUSR1 toggles show/hide
 # If the process died, relaunches it.
-export DISPLAY=:0
-SCRIPT="/home/elijah/scripts/slide_keyboard.py"
+export DISPLAY="${DISPLAY:-:0}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT="${SCRIPT_DIR}/slide_keyboard.py"
 PIDFILE="/tmp/slide_keyboard.pid"
 
 _get_pid() {

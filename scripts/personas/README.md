@@ -5,7 +5,7 @@ These JSON files configure voice-driven sub-agent conversations in `subagent_voi
 ## Run a persona
 
 ```bash
-python3 ~/scripts/subagent_voice.py --persona companion
+python3 "$HOME/ai-controller/scripts/subagent_voice.py" --persona companion
 ```
 
 ## Persona structure
