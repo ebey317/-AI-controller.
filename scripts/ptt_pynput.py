@@ -373,9 +373,8 @@ def start_recording():
         # Save the currently focused window so we can restore focus before typing.
         # AntiMicroX or other apps may steal focus during recording.
         _focus_window = _active_window()
-        # Auto-space before dictation
-        subprocess.run(['xdotool', 'key', 'space'],
-                       env={**os.environ, 'DISPLAY': os.environ.get('DISPLAY', ':0')})
+        # Note: no auto-space here. Releasing the dictation trigger already
+        # separates words in practice; explicit spacing is handled by the user.
         rawfile = tempfile.mktemp(suffix='.raw', dir='/tmp')
         wavfile = tempfile.mktemp(suffix='.wav', dir='/tmp')
         rec_proc = subprocess.Popen(
