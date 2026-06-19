@@ -18,18 +18,18 @@ from scipy.io import wavfile
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
-from ai_controller_paths import config_dir, ensure_config_dir
+from ai_controller_paths import ai_controller_dir, config_dir, ensure_config_dir
 
 ensure_config_dir()
 STATE_FILE = os.path.join(config_dir(), "ai_controller_voice")
 UNLOCKS_FILE = os.path.join(config_dir(), "ai_controller_unlocked_voices.json")
-VOICES_DIR = os.path.join(SCRIPT_DIR, "voices")
+VOICES_DIR = os.path.join(ai_controller_dir(), "voices")
 
 _DEVNULL = subprocess.DEVNULL
 
 
 def _discover_voices():
-    """Find all voice packs under voices/ with valid config + onnx model."""
+    """Find all voice packs under voices/ with valid config."""
     voices = []
     if not os.path.isdir(VOICES_DIR):
         return voices
@@ -45,22 +45,28 @@ def _discover_voices():
                 cfg = json.load(f)
         except Exception:
             continue
+        engine = cfg.get("engine", "piper")
         # find any .onnx model in the pack (locked placeholders may ship without one)
-        onnx_files = [n for n in os.listdir(voice_path) if n.endswith(".onnx")]
         model_file = None
-        if onnx_files:
-            model_file = onnx_files[0]
-        if cfg.get("model"):
-            candidate = cfg["model"]
-            if os.path.exists(os.path.join(voice_path, candidate)):
-                model_file = candidate
-        if model_file is None and not cfg.get("locked"):
-            # base/free voices must have a working model
-            continue
+        if engine == "piper":
+            onnx_files = [n for n in os.listdir(voice_path) if n.endswith(".onnx")]
+            if onnx_files:
+                model_file = onnx_files[0]
+            if cfg.get("model"):
+                candidate = cfg["model"]
+                if os.path.exists(os.path.join(voice_path, candidate)):
+                    model_file = candidate
+            if model_file is None and not cfg.get("locked"):
+                # base/free Piper voices must have a working model
+                continue
         voices.append({
             "id": voice_id,
             "name": cfg.get("name", voice_id),
             "label": cfg.get("label", voice_id.upper()),
+            "engine": engine,
+            "voice": cfg.get("voice", ""),
+            "pitch": cfg.get("pitch", "+0Hz"),
+            "rate": cfg.get("rate", "+0%"),
             "locked": bool(cfg.get("locked", False)),
             "price": cfg.get("price", ""),
             "description": cfg.get("description", ""),
@@ -176,6 +182,29 @@ def _concat_with_pauses(paths, pause_ms, output_path):
     wavfile.write(output_path, rate, combined)
 
 
+def _speak_edge(text, voice):
+    """Speak text using Microsoft Edge TTS."""
+    mp3_fd, mp3_path = tempfile.mkstemp(suffix=".mp3", prefix="tts_")
+    os.close(mp3_fd)
+    try:
+        subprocess.run(
+            [sys.executable, "-m", "edge_tts",
+             "--voice", voice.get("voice", "en-US-AriaNeural"),
+             "--pitch=" + voice.get("pitch", "+0Hz"),
+             "--rate=" + voice.get("rate", "+0%"),
+             "--text", text,
+             "--write-media", mp3_path],
+            stdout=_DEVNULL, stderr=_DEVNULL, check=True, timeout=30
+        )
+        subprocess.run(["mpv", "--no-video", mp3_path],
+                       check=False, stdout=_DEVNULL, stderr=_DEVNULL)
+    finally:
+        try:
+            os.unlink(mp3_path)
+        except Exception:
+            pass
+
+
 def speak(text, voice_id=None):
     voice_id = voice_id or load_voice()
     voice = get_voice(voice_id)
@@ -183,9 +212,17 @@ def speak(text, voice_id=None):
         # fallback: try legacy hardcoded Joe path
         voice = {
             "id": "joe",
+            "engine": "piper",
             "model": os.path.join(VOICES_DIR, "joe", "en_US-joe-medium.onnx"),
         }
+
+    if voice.get("engine") == "edge-tts":
+        _speak_edge(text, voice)
+        return
+
     model_path = voice["model"]
+    if not model_path:
+        return
 
     sentences = _split_sentences(text)
     if not sentences:

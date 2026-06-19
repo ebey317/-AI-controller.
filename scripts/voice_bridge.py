@@ -58,9 +58,9 @@ def _speak(text: str) -> None:
         
         # Generate TTS with tuned settings
         subprocess.run(
-            ["edge-tts", "--voice", EDGE_VOICE,
-             "--pitch", EDGE_PITCH,
-             "--rate", EDGE_RATE,
+            [sys.executable, "-m", "edge_tts", "--voice", EDGE_VOICE,
+             "--pitch=" + EDGE_PITCH,
+             "--rate=" + EDGE_RATE,
              "--text", spoken,
              "--write-media", mp3_path],
             stdout=subprocess.DEVNULL,

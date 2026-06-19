@@ -1,0 +1,10 @@
+{"type":"server-started","port":52891,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:52891","screen_dir":"/home/elijah/projects/-AI-controller./.superpowers/brainstorm/1467193-1781878973/content","state_dir":"/home/elijah/projects/-AI-controller./.superpowers/brainstorm/1467193-1781878973/state"}
+{"type":"screen-added","file":"/home/elijah/projects/-AI-controller./.superpowers/brainstorm/1467193-1781878973/content/skin-tone.html"}
+{"source":"user-event","type":"click","text":"4\n    \n      👋🏾 Medium-Dark\n      Fitzpatrick type V","choice":"4","id":null,"timestamp":1781879488274}
+{"source":"user-event","type":"click","text":"4\n    \n      👋🏾 Medium-Dark\n      Fitzpatrick type V","choice":"4","id":null,"timestamp":1781879490514}
+{"source":"user-event","type":"click","text":"4\n    \n      👋🏾 Medium-Dark\n      Fitzpatrick type V","choice":"4","id":null,"timestamp":1781879491085}
+{"source":"user-event","type":"click","text":"4\n    \n      👋🏾 Medium-Dark\n      Fitzpatrick type V","choice":"4","id":null,"timestamp":1781879491674}
+{"source":"user-event","type":"click","text":"4\n    \n      👋🏾 Medium-Dark\n      Fitzpatrick type V","choice":"4","id":null,"timestamp":1781879491876}
+{"type":"screen-added","file":"/home/elijah/projects/-AI-controller./.superpowers/brainstorm/1467193-1781878973/content/waiting.html"}
+{"type":"screen-updated","file":"/home/elijah/projects/-AI-controller./.superpowers/brainstorm/1467193-1781878973/content/waiting.html"}
+{"type":"server-stopped","reason":"idle timeout"}

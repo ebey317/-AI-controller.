@@ -1,41 +1,32 @@
 #!/bin/bash
 # toggle-slide-keyboard.sh — View button (button 5) on-screen keyboard toggle.
-# Replaces the broken onboard-toggle.sh.
+# Relies on the ai-slide-keyboard.service to keep the keyboard alive.
 #
-# First press: launches slide_keyboard.py (visible immediately via --show)
-# Second press: sends SIGUSR1 to toggle it hidden
-# Subsequent presses: SIGUSR1 toggles show/hide
-# If the process died, relaunches it.
+# First press: ensures the service is running and sends SIGUSR1 to show it.
+# Subsequent presses: SIGUSR1 toggles show/hide.
+# If the process died, the service will restart it.
 export DISPLAY="${DISPLAY:-:0}"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCRIPT="${SCRIPT_DIR}/slide_keyboard.py"
+SERVICE="ai-slide-keyboard.service"
 PIDFILE="/tmp/slide_keyboard.pid"
 
-_get_pid() {
-    # Prefer the tracked PID file, fall back to finding our singleton process.
-    if [ -f "$PIDFILE" ]; then
-        PID=$(cat "$PIDFILE" 2>/dev/null)
-        if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
-            echo "$PID"
-            return 0
-        fi
-    fi
-    # PID file stale/missing — locate the actual running keyboard.
-    PID=$(pgrep -f "$SCRIPT --show" | head -n1)
-    if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
-        echo "$PID" > "$PIDFILE"
-        echo "$PID"
-        return 0
-    fi
-    return 1
-}
+# Ensure the service is started (idempotent).
+systemctl --user start "$SERVICE" 2>/dev/null
 
-PID=$(_get_pid)
-if [ -n "$PID" ]; then
-    kill -USR1 "$PID"
-    exit 0
+# Give the service a moment to spawn the keyboard.
+sleep 0.2
+
+# Prefer the PID file written by slide_keyboard.py; fall back to pgrep.
+PID=""
+if [ -f "$PIDFILE" ]; then
+    PID=$(cat "$PIDFILE" 2>/dev/null)
+fi
+if [ -z "$PID" ] || ! kill -0 "$PID" 2>/dev/null; then
+    PID=$(pgrep -f 'slide_keyboard.py --show' | head -n1)
 fi
 
-# No running process — launch fresh with --show so it appears immediately.
-/usr/bin/python3 "$SCRIPT" --show &
-echo $! > "$PIDFILE"
+if [ -n "$PID" ]; then
+    kill -USR1 "$PID"
+else
+    # Last resort: restart the service.
+    systemctl --user restart "$SERVICE"
+fi

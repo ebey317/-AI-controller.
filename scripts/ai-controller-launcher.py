@@ -122,7 +122,13 @@ class Launcher(Gtk.Window):
             return "Version unknown"
 
     def _service_status(self):
-        services = ["antimicrox-autoload.service", "voice-bridge.service", "ptt-pynput.service", "controller-legend.service"]
+        services = [
+            "antimicrox-autoload.service",
+            "voice-bridge.service",
+            "ptt-pynput.service",
+            "controller-legend.service",
+            "ai-slide-keyboard.service",
+        ]
         running = 0
         for svc in services:
             r = subprocess.run(
@@ -138,13 +144,13 @@ class Launcher(Gtk.Window):
 
     def _on_start(self, _widget):
         subprocess.Popen(
-            ["systemctl", "--user", "start", "antimicrox-autoload.service", "voice-bridge.service", "ptt-pynput.service", "controller-legend.service"],
+            ["systemctl", "--user", "start", "antimicrox-autoload.service", "voice-bridge.service", "ptt-pynput.service", "controller-legend.service", "ai-slide-keyboard.service"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.status_label.set_text("Starting services...")
 
     def _on_stop(self, _widget):
         subprocess.Popen(
-            ["systemctl", "--user", "stop", "antimicrox-autoload.service", "voice-bridge.service", "ptt-pynput.service", "controller-legend.service"],
+            ["systemctl", "--user", "stop", "antimicrox-autoload.service", "voice-bridge.service", "ptt-pynput.service", "controller-legend.service", "ai-slide-keyboard.service"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.status_label.set_text("Stopping services...")
 

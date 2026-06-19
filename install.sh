@@ -16,6 +16,7 @@ SERVICES=(
     controller-legend.service
     ptt-pynput.service
     voice-bridge.service
+    ai-slide-keyboard.service
 )
 
 PIPER_VOICE_URL="https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/joe/medium/en_US-joe-medium.onnx"
@@ -128,9 +129,13 @@ sed -i "s|__AI_CONTROLLER_DIR__|${INSTALL_DIR}|g" "${ANTIMICROX_PROFILE_DIR}/ai-
 
 # ── 8. DOWNLOAD DEFAULT PIPER VOICE ──────────────────────────────────────────
 echo "→ Downloading default Piper voice (Joe)..."
-mkdir -p "${INSTALL_DIR}/voices"
-wget -q --show-progress -O "${INSTALL_DIR}/voices/en_US-joe-medium.onnx" "${PIPER_VOICE_URL}" || true
-wget -q --show-progress -O "${INSTALL_DIR}/voices/en_US-joe-medium.onnx.json" "${PIPER_CONFIG_URL}" || true
+mkdir -p "${INSTALL_DIR}/voices/joe"
+wget -q --show-progress -O "${INSTALL_DIR}/voices/joe/en_US-joe-medium.onnx" "${PIPER_VOICE_URL}" || true
+wget -q --show-progress -O "${INSTALL_DIR}/voices/joe/en_US-joe-medium.onnx.json" "${PIPER_CONFIG_URL}" || true
+# The repo already ships voices/joe/config.json; ensure it exists in the install.
+if [[ ! -f "${INSTALL_DIR}/voices/joe/config.json" ]]; then
+    cp "${REPO_DIR}/voices/joe/config.json" "${INSTALL_DIR}/voices/joe/config.json"
+fi
 
 # ── 9. INSTALL SYSTEMD SERVICES ──────────────────────────────────────────────
 echo "→ Installing systemd user services..."
