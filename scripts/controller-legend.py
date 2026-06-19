@@ -384,6 +384,10 @@ class Legend(Gtk.Window):
             self.typing_lbl.set_size_request(-1, -1)
             self.content_box.show()
             self.set_size_request(-1, -1)
+            # Force the window to shrink back to the legend's natural size after
+            # the square typing indicator expands it.
+            self.resize(1, 1)
+            self.queue_resize()
 
 
 def get_profile():
