@@ -37,6 +37,9 @@ def toggle():
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+_DEVNULL = subprocess.DEVNULL
+
+
 def speak(text, voice=None):
     voice = voice or load_voice()
     if voice == "joe":
@@ -44,17 +47,20 @@ def speak(text, voice=None):
         subprocess.run(
             ["piper", "--model", model_path,
              "--output_file", "/tmp/ai_controller_tts.wav"],
-            input=text.encode(), check=False
+            input=text.encode(), check=False,
+            stdout=_DEVNULL, stderr=_DEVNULL
         )
-        subprocess.run(["mpv", "--no-video", "/tmp/ai_controller_tts.wav"], check=False)
+        subprocess.run(["mpv", "--no-video", "/tmp/ai_controller_tts.wav"],
+                       check=False, stdout=_DEVNULL, stderr=_DEVNULL)
     else:
         subprocess.run(
             ["edge-tts", "--voice", "en-US-AriaNeural",
              "--pitch=-22Hz", "--rate=+12%",
              "--text", text, "--write-media", "/tmp/ai_controller_tts.mp3"],
-            check=False
+            check=False, stdout=_DEVNULL, stderr=_DEVNULL
         )
-        subprocess.run(["mpv", "--no-video", "/tmp/ai_controller_tts.mp3"], check=False)
+        subprocess.run(["mpv", "--no-video", "/tmp/ai_controller_tts.mp3"],
+                       check=False, stdout=_DEVNULL, stderr=_DEVNULL)
 
 
 if __name__ == "__main__":
