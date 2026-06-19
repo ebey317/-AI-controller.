@@ -171,7 +171,7 @@ def listen_for_f13():
 
 def main():
     parser = argparse.ArgumentParser(description="Voice sub-agent companion")
-    parser.add_argument("--persona", default="therapist", help="Persona to use")
+    parser.add_argument("--persona", default="companion", help="Persona to use")
     parser.add_argument("--list", action="store_true", help="List available personas")
     parser.add_argument("--unlock", metavar="ID", help="Unlock a premium persona")
     args = parser.parse_args()
