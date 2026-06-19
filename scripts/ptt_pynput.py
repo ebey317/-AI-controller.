@@ -461,6 +461,7 @@ rawfile = None
 wavfile = None
 lock = threading.Lock()
 _focus_window = None  # saved at recording start so we can restore focus before typing
+_record_timer = None  # safety timer that auto-stops a runaway recording
 
 # Debounce F13 chatter from the controller trigger.
 _last_f13_time = 0.0
@@ -469,6 +470,8 @@ _DEBOUNCE_MS = 200
 _TYPE_SETTLE_MS = 50
 # Type as fast as xdotool allows to minimize the window for controller interference.
 _XDOTOOL_TYPE_DELAY_MS = 0
+# Safety cap: auto-stop a recording if the trigger is held longer than this.
+_MAX_RECORDING_SECONDS = 30
 # Short accidental trigger presses often hallucinate these words from fan/mic noise.
 _SHORT_HALLUCINATIONS = {
     "thank you", "thanks", "thank", "check", "yellow", "yep", "yup",
@@ -533,6 +536,9 @@ def start_recording():
             rec_cmd,
             stdout=open(rawfile, 'wb'), stderr=subprocess.DEVNULL)
         recording = True
+        _record_timer = threading.Timer(_MAX_RECORDING_SECONDS, lambda: stop_and_send())
+        _record_timer.daemon = True
+        _record_timer.start()
         print("  Recording...", flush=True)
 
 
@@ -558,7 +564,7 @@ def _is_silence(path, rms_threshold=200):
 
 
 def stop_and_send():
-    global recording, rec_proc, rawfile, wavfile, _last_f13_time
+    global recording, rec_proc, rawfile, wavfile, _last_f13_time, _record_timer
     with lock:
         if not recording:
             return
@@ -566,6 +572,9 @@ def stop_and_send():
         if (now - _last_f13_time) * 1000 < _DEBOUNCE_MS:
             return
         _last_f13_time = now
+        if _record_timer:
+            _record_timer.cancel()
+            _record_timer = None
         rec_proc.terminate()
         rec_proc.wait()
         if rec_proc.stdout:
