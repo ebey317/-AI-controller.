@@ -1,0 +1,8 @@
+{
+  "name": "Aria",
+  "engine": "edge-tts",
+  "voice": "en-US-AriaNeural",
+  "pitch": "-22Hz",
+  "rate": "+12%",
+  "description": "Female neural voice via Microsoft Edge TTS (online)"
+}

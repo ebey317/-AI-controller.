@@ -1,0 +1,7 @@
+{
+  "name": "Joe",
+  "engine": "piper",
+  "model": "voices/joe/en_US-joe-medium.onnx",
+  "config": "voices/joe/en_US-joe-medium.onnx.json",
+  "description": "Male local neural voice via Piper"
+}

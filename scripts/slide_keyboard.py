@@ -28,6 +28,7 @@ from gi.repository import Gtk, Gdk, GLib
 
 # Shared with ptt_pynput.py: PRO = plain text, BUBBLY = cursive + emoji
 PTT_MODE_FILE = os.path.expanduser("~/.config/ptt_mode")
+VOICE_FILE = os.path.expanduser("~/.config/ai_controller_voice")
 
 ROWS_LOWER = [
     ["`", "esc", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "bksp"],
@@ -160,6 +161,11 @@ class SlideKeyboard(Gtk.Window):
         self.header.set_margin_top(6)
         self.panel.pack_start(self.header, False, False, 0)
 
+        self.voice_btn = Gtk.Button(label=self._voice_label())
+        self.voice_btn.get_style_context().add_class("mode")
+        self.voice_btn.connect("clicked", self._on_voice_toggle)
+        self.header.pack_start(self.voice_btn, False, False, 0)
+
         self.mode_btn = Gtk.Button(label=self._mode_label())
         self.mode_btn.get_style_context().add_class("mode")
         self.mode_btn.connect("clicked", self._on_mode_toggle)
@@ -216,6 +222,33 @@ class SlideKeyboard(Gtk.Window):
         new_mode = "bubbly" if self._load_ptt_mode() == "pro" else "pro"
         self._save_ptt_mode(new_mode)
         self.mode_btn.set_label(self._mode_label())
+
+    def _load_voice(self) -> str:
+        try:
+            with open(VOICE_FILE, "r", encoding="utf-8") as f:
+                v = f.read().strip().lower()
+                if v in ("joe", "aria"):
+                    return v
+        except Exception:
+            pass
+        return "joe"
+
+    def _save_voice(self, voice: str) -> None:
+        os.makedirs(os.path.dirname(VOICE_FILE), exist_ok=True)
+        with open(VOICE_FILE, "w", encoding="utf-8") as f:
+            f.write(voice)
+
+    def _voice_label(self) -> str:
+        return self._load_voice().upper()
+
+    def _on_voice_toggle(self, _widget):
+        new_voice = "aria" if self._load_voice() == "joe" else "joe"
+        self._save_voice(new_voice)
+        self.voice_btn.set_label(self._voice_label())
+        # Announce the switch
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        subprocess.Popen([sys.executable, os.path.join(script_dir, "voice_toggle.py"), "--speak", f"Switched to {new_voice}."],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def _build_keys(self):
         for child in self.grid.get_children():
