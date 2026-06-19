@@ -36,6 +36,7 @@ import voice_toggle
 # Shared with ptt_pynput.py: PRO = plain text, BUBBLY = cursive + emoji
 PTT_MODE_FILE = os.path.expanduser("~/.config/ptt_mode")
 VOICE_FILE = os.path.expanduser("~/.config/ai_controller_voice")
+INPUT_TARGET_FILE = os.path.expanduser("~/.config/ai_controller_input_target")
 
 ROWS_LOWER = [
     ["`", "esc", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "bksp"],
@@ -234,6 +235,15 @@ class SlideKeyboard(Gtk.Window):
             self._voice_buttons.append((voice_id, btn, locked))
         self._refresh_voice_buttons()
 
+        # Input target toggle: type directly vs copy to clipboard only.
+        self.target_btn = Gtk.Button(label=self._target_label())
+        self.target_btn.get_style_context().add_class("mode")
+        self.target_btn.connect("clicked", self._on_target_toggle)
+        self.voice_shelf.pack_end(self.target_btn, False, False, 0)
+        target_label = Gtk.Label(label="DICTATE TO")
+        target_label.get_style_context().add_class("shelf-title")
+        self.voice_shelf.pack_end(target_label, False, False, 0)
+
         self.sw = screen.get_width()
         self.sh = screen.get_height()
         self.center_x = (self.sw - self.WIDTH) // 2
@@ -314,6 +324,32 @@ class SlideKeyboard(Gtk.Window):
         # Clicking a locked pack tells the user how to get it.
         script_dir = os.path.dirname(os.path.abspath(__file__))
         subprocess.Popen([sys.executable, os.path.join(script_dir, "voice_toggle.py"), "--speak", f"{voice_id} is a premium voice. Unlock it on Gumroad."],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def _load_input_target(self) -> str:
+        try:
+            with open(INPUT_TARGET_FILE, "r", encoding="utf-8") as f:
+                t = f.read().strip().lower()
+                if t in ("type", "clipboard"):
+                    return t
+        except Exception:
+            pass
+        return "type"
+
+    def _save_input_target(self, target: str) -> None:
+        os.makedirs(os.path.dirname(INPUT_TARGET_FILE), exist_ok=True)
+        with open(INPUT_TARGET_FILE, "w", encoding="utf-8") as f:
+            f.write(target)
+
+    def _target_label(self) -> str:
+        return "CLIPBOARD" if self._load_input_target() == "clipboard" else "TYPE"
+
+    def _on_target_toggle(self, _widget):
+        new_target = "clipboard" if self._load_input_target() == "type" else "type"
+        self._save_input_target(new_target)
+        self.target_btn.set_label(self._target_label())
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        subprocess.Popen([sys.executable, os.path.join(script_dir, "voice_toggle.py"), "--speak", f"Dictate to {new_target}."],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def _build_keys(self):

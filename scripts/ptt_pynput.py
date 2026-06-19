@@ -14,6 +14,7 @@ SENSEI_SESSION = os.environ.get("SENSEI_SESSION", "focus-engine")
 # ---------------------------------------------------------------------------
 MODE_FILE = os.path.expanduser("~/.config/ptt_mode")
 VOCAB_FILE = os.path.expanduser("~/.config/ptt_vocabulary.json")
+INPUT_TARGET_FILE = os.path.expanduser("~/.config/ai_controller_input_target")
 
 
 
@@ -106,6 +107,18 @@ def _load_ptt_mode() -> str:
     except Exception:
         pass
     return "pro"
+
+
+def _load_input_target() -> str:
+    """Return input target: 'type' (default) or 'clipboard' (copy only)."""
+    try:
+        with open(INPUT_TARGET_FILE, "r", encoding="utf-8") as f:
+            target = f.read().strip().lower()
+            if target in ("type", "clipboard"):
+                return target
+    except Exception:
+        pass
+    return "type"
 
 
 def _to_cursive(text: str) -> str:
@@ -450,9 +463,13 @@ def stop_and_send():
         if response:
             print(f"  Response: {response}", flush=True)
         elif transcript:
-            print(f"  Typed: {transcript}", flush=True)
+            target = _load_input_target()
+            print(f"  Output ({target}): {transcript}", flush=True)
             time.sleep(_TYPE_SETTLE_MS / 1000.0)
-            if _is_discord_voice_window():
+            if target == "clipboard":
+                # Clipboard-only mode: never auto-type, just copy for manual paste.
+                _set_clipboard_text(transcript)
+            elif _is_discord_voice_window():
                 # Discord voice channels have no focused text field; auto-typing
                 # would fall through to the last text channel. Queue it instead.
                 _set_clipboard_text(transcript)
