@@ -175,9 +175,15 @@ class SlideKeyboard(Gtk.Window):
         self.left_col.pack_start(self.mode_bar, False, False, 0)
 
         self._mode_buttons = []
-        for mode in ("bubbly", "casual", "pro"):
-            label = "✨ BUBBLY" if mode == "bubbly" else mode.upper()
-            btn = Gtk.Button(label=label)
+        for mode in ("bubbly", "casual", "bold", "big", "pro"):
+            labels = {
+                "bubbly": "✨",
+                "casual": "☕ CASUAL",
+                "bold": "BOLD",
+                "big": "BIG",
+                "pro": "PRO",
+            }
+            btn = Gtk.Button(label=labels[mode])
             btn.get_style_context().add_class("mode")
             btn.connect("clicked", self._on_mode_set, mode)
             self.mode_bar.pack_start(btn, False, False, 0)
@@ -249,7 +255,7 @@ class SlideKeyboard(Gtk.Window):
         try:
             with open(PTT_MODE_FILE, "r", encoding="utf-8") as f:
                 mode = f.read().strip().lower()
-                if mode in ("pro", "bubbly", "casual", "formal"):
+                if mode in ("pro", "bubbly", "casual", "bold", "big"):
                     return mode
         except Exception:
             pass

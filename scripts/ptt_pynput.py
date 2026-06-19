@@ -97,11 +97,11 @@ _EMOJI_MAP = {
 
 
 def _load_ptt_mode() -> str:
-    """Return current PTT style mode: 'pro', 'bubbly', 'bold', or 'big'."""
+    """Return current PTT style mode: 'pro', 'bubbly', 'casual', 'bold', or 'big'."""
     try:
         with open(MODE_FILE, "r", encoding="utf-8") as f:
             mode = f.read().strip().lower()
-            if mode in ("pro", "bubbly", "bold", "big"):
+            if mode in ("pro", "bubbly", "casual", "bold", "big"):
                 return mode
     except Exception:
         pass
@@ -141,17 +141,19 @@ def _add_emojis(text: str) -> str:
 
 
 def _transform_text(text: str, mode: str) -> str:
-    """Apply bubbly/bold/big style: styled letters + simple emoji keywords.
+    """Apply style to transcript based on active mode.
 
-    PRO returns the raw transcript with no changes. BUBBLY uses italic Unicode
-    instead of cursive because cursive glyphs are missing from many fonts,
-    causing gaps and slow rendering. Italic is cursive-like but renders fast.
+    PRO returns the raw transcript with no changes. BUBBLY uses italic Unicode.
+    CASUAL lowercases everything for a relaxed tone. BOLD and BIG use their
+    respective Unicode letter blocks.
     """
     if mode == "pro":
         return text
     text = _add_emojis(text)
     if mode == "bubbly":
         text = _to_italic(text)
+    elif mode == "casual":
+        text = text.lower()
     elif mode == "bold":
         text = _to_bold(text)
     elif mode == "big":
