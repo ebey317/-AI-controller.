@@ -137,7 +137,7 @@ def _type_text_fast(text: str) -> None:
     # ASCII (PRO/CASUAL) can be fired as fast as possible.
     delay = _XDOTOOL_TYPE_DELAY_MS
     if any(ord(ch) >= 128 for ch in text):
-        delay = 2  # ms; just enough to keep Unicode chars from being dropped
+        delay = 5  # ms; slow enough to keep Unicode chars from being dropped
     subprocess.run(['xdotool', 'type', '--clearmodifiers',
                     f'--delay={delay}', '--', text],
                    env=env)

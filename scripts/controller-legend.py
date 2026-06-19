@@ -26,11 +26,10 @@ ALL_LAYOUTS = {
         ("LT",   "Ctrl"),
         ("RT",   "Talk"),
         ("⧉",    "Tab"),    # View (back)
-        ("☰",    "Space"),  # Menu / Start
+        ("☰",    "Shift"),  # Menu / Start
         ("🎮",   "R·Clk"),  # Xbox/Guide button
         ("LS",   "Space"),
         ("RS",   "Enter"),
-        ("D↕",   "Arrows"),
     ],
     "browser": [
         ("A",   "Click"),
