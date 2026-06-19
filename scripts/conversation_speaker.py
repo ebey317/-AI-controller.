@@ -16,6 +16,7 @@ Modes:
 import argparse
 import json
 import os
+import random
 import re
 import sys
 import time
@@ -133,6 +134,9 @@ def cmd_say(args):
 
 def cmd_loop(args):
     speaker = Speaker()
+    # Loops are intentional, so allow a higher default speech rate.
+    speaker.rate_per_min = args.rate_per_min
+
     messages = list(args.message or [])
     if args.messages_file:
         try:
@@ -147,12 +151,26 @@ def cmd_loop(args):
 
     end = time.time() + args.duration
     idx = 0
-    print(f"[loop] running for {args.duration}s, interval {args.interval}s, {len(messages)} message(s)")
+    fixed = args.interval is not None
+    if fixed:
+        print(f"[loop] running for {args.duration}s, fixed interval {args.interval}s, {len(messages)} message(s)")
+    else:
+        print(f"[loop] running for {args.duration}s, random gaps {args.min_interval}s-{args.max_interval}s, {len(messages)} message(s)")
+
     while time.time() < end:
+        if args.shuffle:
+            random.shuffle(messages)
+            idx = 0
         msg = messages[idx % len(messages)]
         speaker.speak(msg)
         idx += 1
-        remaining = args.interval
+
+        if fixed:
+            delay = args.interval
+        else:
+            delay = random.randint(args.min_interval, args.max_interval)
+
+        remaining = delay
         while remaining > 0 and time.time() < end:
             step = min(remaining, 1.0)
             time.sleep(step)
@@ -267,7 +285,11 @@ def main():
 
     p_loop = sub.add_parser("loop", help="Repeat specific messages for a set duration")
     p_loop.add_argument("--duration", type=int, default=7200, help="Total seconds to run (default 7200 = 2 hours)")
-    p_loop.add_argument("--interval", type=int, default=600, help="Seconds between messages (default 600 = 10 min)")
+    p_loop.add_argument("--interval", type=int, default=None, help="Fixed seconds between messages (overrides random gaps)")
+    p_loop.add_argument("--min-interval", type=int, default=10, help="Minimum random gap in seconds (default 10)")
+    p_loop.add_argument("--max-interval", type=int, default=60, help="Maximum random gap in seconds (default 60)")
+    p_loop.add_argument("--shuffle", action="store_true", help="Shuffle message order each cycle")
+    p_loop.add_argument("--rate-per-min", type=int, default=120, help="Speech rate limit for this loop (default 120)")
     p_loop.add_argument("--message", action="append", help="Message to speak; repeatable")
     p_loop.add_argument("--messages-file", help="File with one message per line")
 
