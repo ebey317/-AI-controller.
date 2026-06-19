@@ -149,7 +149,18 @@ for svc in "${SERVICES[@]}"; do
     systemctl --user enable "${svc}"
 done
 
-# ── 10. START SERVICES ───────────────────────────────────────────────────────
+# ── 10. INSTALL DESKTOP LAUNCHER & AUTOSTART ─────────────────────────────────
+echo "→ Installing desktop launcher..."
+chmod +x "${INSTALL_DIR}/scripts/ai-controller-launcher.sh"
+DESKTOP_DIR="${HOME}/.local/share/applications"
+AUTOSTART_DIR="${HOME}/.config/autostart"
+mkdir -p "${DESKTOP_DIR}" "${AUTOSTART_DIR}"
+cp "${INSTALL_DIR}/ai-controller-launcher.desktop" "${DESKTOP_DIR}/"
+cp "${INSTALL_DIR}/ai-controller-launcher.desktop" "${AUTOSTART_DIR}/"
+sed -i "s|__AI_CONTROLLER_DIR__|${INSTALL_DIR}|g" "${DESKTOP_DIR}/ai-controller-launcher.desktop"
+sed -i "s|__AI_CONTROLLER_DIR__|${INSTALL_DIR}|g" "${AUTOSTART_DIR}/ai-controller-launcher.desktop"
+
+# ── 11. START SERVICES ───────────────────────────────────────────────────────
 echo ""
 echo "→ Starting services..."
 for svc in "${SERVICES[@]}"; do
@@ -167,4 +178,5 @@ echo ""
 echo "Check status with:"
 echo "  systemctl --user status ${SERVICES[*]}"
 echo ""
+echo "The AI Controller launcher is in your applications menu and will autostart on login."
 echo "Plug in your controller, put on headphones, and press Right Trigger to talk."
