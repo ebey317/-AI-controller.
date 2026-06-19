@@ -8,11 +8,6 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
-
-import numpy as np
-from scipy import signal
-from scipy.io import wavfile
 
 STATE_FILE = os.path.expanduser("~/.config/ai_controller_voice")
 UNLOCKS_FILE = os.path.expanduser("~/.config/ai_controller_unlocked_voices.json")
@@ -130,56 +125,6 @@ def list_voices():
     return voices
 
 
-def _model_config_path(model_path):
-    """Return the Piper model config JSON path, or None."""
-    for ext in (".onnx.json", "_json"):
-        candidate = model_path + ext if ext.startswith(".") else model_path + ext
-        if os.path.exists(candidate):
-            return candidate
-    return None
-
-
-def _make_spaced_config(base_config_path):
-    """Create a temporary Piper config with slightly slower, more spaced speech."""
-    try:
-        with open(base_config_path, "r", encoding="utf-8") as f:
-            cfg = json.load(f)
-    except Exception:
-        return base_config_path
-    cfg.setdefault("inference", {})
-    cfg["inference"]["length_scale"] = cfg["inference"].get("length_scale", 1.0) * 1.1
-    fd, tmp_path = tempfile.mkstemp(suffix=".json", prefix="piper_cfg_")
-    os.close(fd)
-    with open(tmp_path, "w", encoding="utf-8") as f:
-        json.dump(cfg, f)
-    return tmp_path
-
-
-def _post_process_wav(input_path, output_path):
-    """Reduce treble with a gentle low-pass filter and add slight sentence spacing."""
-    try:
-        rate, data = wavfile.read(input_path)
-    except Exception:
-        return
-    if data.ndim > 1:
-        data = data[:, 0]
-    data = data.astype(np.float32)
-    # Normalize
-    peak = np.max(np.abs(data)) or 1.0
-    data = data / peak
-    # Gentle low-pass filter to take the edge off treble (cutoff ~8kHz on 22.05kHz)
-    sos = signal.butter(4, 0.36, btype="low", output="sos")
-    data = signal.sosfilt(sos, data)
-    # Insert small silence at sentence pauses (detected by low-energy gaps)
-    # Simpler: add a short trailing pad for breathing room
-    silence = np.zeros(int(rate * 0.08), dtype=np.float32)
-    data = np.concatenate([data, silence])
-    # Restore volume
-    data = data * peak
-    data = np.clip(data, -1.0, 1.0)
-    wavfile.write(output_path, rate, (data * 32767).astype(np.int16))
-
-
 def speak(text, voice_id=None):
     voice_id = voice_id or load_voice()
     voice = get_voice(voice_id)
@@ -190,22 +135,12 @@ def speak(text, voice_id=None):
             "model": os.path.join(VOICES_DIR, "joe", "en_US-joe-medium.onnx"),
         }
     model_path = voice["model"]
-    base_config = _model_config_path(model_path)
-    config_arg = []
-    tmp_config = None
-    if base_config:
-        tmp_config = _make_spaced_config(base_config)
-        config_arg = ["--config", tmp_config]
     subprocess.run(
-        ["piper", "--model", model_path] + config_arg +
-        ["--output_file", "/tmp/ai_controller_tts_raw.wav"],
+        ["piper", "--model", model_path,
+         "--output_file", "/tmp/ai_controller_tts.wav"],
         input=text.encode(), check=False,
         stdout=_DEVNULL, stderr=_DEVNULL
     )
-    if tmp_config and os.path.exists(tmp_config):
-        os.unlink(tmp_config)
-    if os.path.exists("/tmp/ai_controller_tts_raw.wav"):
-        _post_process_wav("/tmp/ai_controller_tts_raw.wav", "/tmp/ai_controller_tts.wav")
     subprocess.run(["mpv", "--no-video", "/tmp/ai_controller_tts.wav"],
                    check=False, stdout=_DEVNULL, stderr=_DEVNULL)
 
