@@ -20,11 +20,18 @@ import os
 import signal
 import subprocess
 import sys
+import warnings
+
+# GTK3 deprecation noise is not useful in production.
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gtk, Gdk, GLib
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import voice_toggle
 
 # Shared with ptt_pynput.py: PRO = plain text, BUBBLY = cursive + emoji
 PTT_MODE_FILE = os.path.expanduser("~/.config/ptt_mode")
@@ -211,23 +218,20 @@ class SlideKeyboard(Gtk.Window):
         self.voice_shelf.pack_start(shelf_title, False, False, 0)
 
         self._voice_buttons = []
-        voices = [
-            ("joe", "Joe", False),
-            ("aria", "Aria", False),
-            ("morgan", "Morgan 🔒", True),
-            ("lexi", "Lexi 🔒", True),
-        ]
-        for voice, label, locked in voices:
+        for voice in voice_toggle.list_voices():
+            voice_id = voice["id"]
+            label = voice["label"]
+            locked = voice["locked"] and not voice["unlocked"]
             btn = Gtk.Button(label=label)
             if locked:
                 btn.get_style_context().add_class("voice-locked")
-                btn.set_sensitive(False)
-                btn.set_tooltip_text("Unlock in the AI Controller store")
+                btn.set_tooltip_text(f"{voice['description']} — unlock on Gumroad")
+                btn.connect("clicked", self._on_voice_locked, voice_id)
             else:
                 btn.get_style_context().add_class("voice")
-                btn.connect("clicked", self._on_voice_set, voice)
+                btn.connect("clicked", self._on_voice_set, voice_id)
             self.voice_shelf.pack_start(btn, False, False, 0)
-            self._voice_buttons.append((voice, btn, locked))
+            self._voice_buttons.append((voice_id, btn, locked))
         self._refresh_voice_buttons()
 
         self.sw = screen.get_width()
@@ -281,38 +285,35 @@ class SlideKeyboard(Gtk.Window):
         self._refresh_mode_buttons()
 
     def _load_voice(self) -> str:
-        try:
-            with open(VOICE_FILE, "r", encoding="utf-8") as f:
-                v = f.read().strip().lower()
-                if v in ("joe", "aria"):
-                    return v
-        except Exception:
-            pass
-        return "joe"
+        return voice_toggle.load_voice()
 
     def _save_voice(self, voice: str) -> None:
-        os.makedirs(os.path.dirname(VOICE_FILE), exist_ok=True)
-        with open(VOICE_FILE, "w", encoding="utf-8") as f:
-            f.write(voice)
+        voice_toggle.save_voice(voice)
 
     def _refresh_voice_buttons(self):
         current = self._load_voice()
-        for voice, btn, locked in self._voice_buttons:
+        for voice_id, btn, locked in self._voice_buttons:
             if locked:
                 continue
-            if voice == current:
+            if voice_id == current:
                 btn.get_style_context().add_class("voice-active")
                 btn.get_style_context().remove_class("voice")
             else:
                 btn.get_style_context().add_class("voice")
                 btn.get_style_context().remove_class("voice-active")
 
-    def _on_voice_set(self, _widget, voice):
-        self._save_voice(voice)
+    def _on_voice_set(self, _widget, voice_id):
+        self._save_voice(voice_id)
         self._refresh_voice_buttons()
         # Announce the switch
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        subprocess.Popen([sys.executable, os.path.join(script_dir, "voice_toggle.py"), "--speak", f"Switched to {voice}."],
+        subprocess.Popen([sys.executable, os.path.join(script_dir, "voice_toggle.py"), "--speak", f"Switched to {voice_id}."],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def _on_voice_locked(self, _widget, voice_id):
+        # Clicking a locked pack tells the user how to get it.
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        subprocess.Popen([sys.executable, os.path.join(script_dir, "voice_toggle.py"), "--speak", f"{voice_id} is a premium voice. Unlock it on Gumroad."],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def _build_keys(self):
