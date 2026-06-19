@@ -203,7 +203,7 @@ def speak(text, voice_id=None):
                 pass
         os.rmdir(tmp_dir)
 
-    subprocess.run(["mpv", "--no-video", "--speed=0.95", "/tmp/ai_controller_tts.wav"],
+    subprocess.run(["mpv", "--no-video", "--speed=0.97", "/tmp/ai_controller_tts.wav"],
                    check=False, stdout=_DEVNULL, stderr=_DEVNULL)
 
 

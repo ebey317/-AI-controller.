@@ -355,7 +355,7 @@ def _build_wav(raw_path: str, wav_path: str):
 
 def _mute_tts():
     """Kill any playing TTS audio so the mic doesn't capture it."""
-    subprocess.run(['pkill', '-f', 'mpv --no-video /tmp/ai_controller_tts'],
+    subprocess.run(['pkill', '-f', 'ai_controller_tts'],
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
