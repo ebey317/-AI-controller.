@@ -1,5 +1,8 @@
-:video_game: **-AI-controller.** — Couch Computing, Voice-First
+🎮 **-AI-controller.** — Couch Computing, Voice-First
 ============================================================
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-blue.svg)]()
 
 **Talk to your computer from the couch. No keyboard. No mouse. Just a controller and headphones.**
 
@@ -7,16 +10,40 @@ Plug in any corded or Bluetooth controller — Xbox, PlayStation, DualShock, gen
 
 ---
 
+## How It Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Xbox/PlayStation Controller                                │
+│  ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐  │
+│  │   RT    │    │  View   │    │   LS    │    │   RS    │  │
+│  │  Talk   │    │Keyboard │    │ Escape  │    │  Enter  │  │
+│  └─────────┘    └─────────┘    └─────────┘    └─────────┘  │
+└─────────────────────────────────────────────────────────────┘
+         │              │              │              │
+         ▼              ▼              ▼              ▼
+┌─────────────────────────────────────────────────────────────┐
+│  AntiMicroX → F13 → ptt_pynput.py → Whisper → Text Output  │
+└─────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Dictation Modes: PRO | BUBBLY | CASUAL | BOLD | BIG       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## Base Product — $30
 
 The base AI Controller lets you talk **to** your computer:
 
-- :speech_balloon: **Microphone push-to-talk** — press Right Trigger, speak, release
-- :globe_with_meridians: **Dynamic output** — your speech becomes plain typed text in the active app
-- :keyboard: **Floating on-screen keyboard** — toggle it with the View button, type with the stick
-- :joystick: **Floating controller legend** — see your button mappings as an overlay
-- :electric_plug: **Universal controller support** — Xbox, PlayStation, DualShock, USB, Bluetooth
-- :gear: **Power-loss safe** — systemd services restart everything on boot
+- 🎤 **Microphone push-to-talk** — press Right Trigger, speak, release
+- 🌐 **Dynamic output** — your speech becomes plain typed text in the active app
+- ⌨️ **Floating on-screen keyboard** — toggle it with the View button, type with the stick
+- 🕹️ **Floating controller legend** — see your button mappings as an overlay
+- 🔌 **Universal controller support** — Xbox, PlayStation, DualShock, USB, Bluetooth
+- ⚙️ **Power-loss safe** — systemd services restart everything on boot
 
 **At $30, the computer listens and types. It does not talk back.**
 
@@ -29,13 +56,13 @@ Each level-up gives the AI Controller a new identity.
 ### Level-Up 1: Voice Identity
 The computer talks back to you.
 
-- :sound: **Voice response** — the AI reads answers aloud through your headphones
-- :microphone: **Voice packs** — Joe included; premium Piper voices unlock from the shelf
+- 🔊 **Voice response** — the AI reads answers aloud through your headphones
+- 🎙️ **Voice packs** — Joe included; premium Piper voices unlock from the shelf
 
 ### Level-Up 2: Dictation Identity
 Your speech gets styled before it is typed.
 
-- :sparkles: **Output modes** — PRO, BUBBLY, CASUAL, BOLD, BIG text personality transforms
+- ✨ **Output modes** — PRO, BUBBLY, CASUAL, BOLD, BIG text personality transforms
 
 ### Power Level-Up: Full Identity
 Bundle one voice with one dictation mode. The agent sounds different **and** your words look different. That's a complete identity swap.
