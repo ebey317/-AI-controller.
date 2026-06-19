@@ -22,21 +22,23 @@ The base AI Controller lets you talk **to** your computer:
 
 ---
 
-## Level-Ups (Sold Separately)
+## Level-Ups (Sold Separately) — New Identities
 
-### Level-Up 1: Voice
+Each level-up gives the AI Controller a new identity.
+
+### Level-Up 1: Voice Identity
 The computer talks back to you.
 
 - :sound: **Voice response** — the AI reads answers aloud through your headphones
 - :microphone: **Voice packs** — Joe included; premium Piper voices unlock from the shelf
 
-### Level-Up 2: Dictation
+### Level-Up 2: Dictation Identity
 Your speech gets styled before it is typed.
 
 - :sparkles: **Output modes** — PRO, BUBBLY, CASUAL, BOLD, BIG text personality transforms
 
-### Power Level-Up: Voice + Dictation
-Bundle one voice with one dictation mode. The agent sounds different **and** your words look different.
+### Power Level-Up: Full Identity
+Bundle one voice with one dictation mode. The agent sounds different **and** your words look different. That's a complete identity swap.
 
 ---
 

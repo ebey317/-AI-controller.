@@ -35,21 +35,22 @@ What if your controller could run your whole computer?
 
 At $30, the computer listens and types. It does not talk back.
 
-### Level-Up 1: Voice
+### Level-Up 1: Voice Identity
 - The AI talks back through your headphones
 - Voice packs: Joe included, premium Piper voices unlockable
 
-### Level-Up 2: Dictation
+### Level-Up 2: Dictation Identity
 - PRO, BUBBLY, CASUAL, BOLD, BIG text personality transforms
 
-### Power Level-Up
+### Power Level-Up: Full Identity
 - Bundle one voice + one dictation mode
 - The agent sounds different and your words look different
+- That's a complete identity swap
 
 ### Works with
 - Couch gaming, accessibility, streaming, hands-free browsing
 
-**$30 base. Level-ups sold separately.**
+**$30 base. Identities sold separately.**
 
 ---
 
