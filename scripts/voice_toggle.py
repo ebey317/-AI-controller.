@@ -6,8 +6,13 @@ Can be triggered from the keyboard, a controller button, or the command line.
 """
 import json
 import os
+import re
 import subprocess
 import sys
+import tempfile
+
+import numpy as np
+from scipy.io import wavfile
 
 STATE_FILE = os.path.expanduser("~/.config/ai_controller_voice")
 UNLOCKS_FILE = os.path.expanduser("~/.config/ai_controller_unlocked_voices.json")
@@ -125,6 +130,46 @@ def list_voices():
     return voices
 
 
+def _split_sentences(text):
+    """Split text into sentence-sized chunks for back-end spacing."""
+    chunks = re.split(r'(?<=[.!?])\s+', text.strip())
+    return [c for c in chunks if c]
+
+
+def _synthesize_sentence(model_path, sentence, output_path):
+    """Generate one sentence with Piper using the stock model config."""
+    subprocess.run(
+        ["piper", "--model", model_path,
+         "--output_file", output_path],
+        input=sentence.encode(), check=False,
+        stdout=_DEVNULL, stderr=_DEVNULL
+    )
+
+
+def _concat_with_pauses(paths, pause_ms, output_path):
+    """Concatenate WAV files with silence between them."""
+    segments = []
+    rate = None
+    for p in paths:
+        try:
+            r, data = wavfile.read(p)
+        except Exception:
+            continue
+        if rate is None:
+            rate = r
+        if data.ndim > 1:
+            data = data[:, 0]
+        segments.append(data)
+        # silence between sentences
+        silence = np.zeros(int(rate * pause_ms / 1000), dtype=data.dtype)
+        segments.append(silence)
+    if not segments or rate is None:
+        return
+    # Drop trailing silence
+    combined = np.concatenate(segments[:-1]) if len(segments) > 1 else segments[0]
+    wavfile.write(output_path, rate, combined)
+
+
 def speak(text, voice_id=None):
     voice_id = voice_id or load_voice()
     voice = get_voice(voice_id)
@@ -135,13 +180,30 @@ def speak(text, voice_id=None):
             "model": os.path.join(VOICES_DIR, "joe", "en_US-joe-medium.onnx"),
         }
     model_path = voice["model"]
-    subprocess.run(
-        ["piper", "--model", model_path,
-         "--output_file", "/tmp/ai_controller_tts.wav"],
-        input=text.encode(), check=False,
-        stdout=_DEVNULL, stderr=_DEVNULL
-    )
-    subprocess.run(["mpv", "--no-video", "/tmp/ai_controller_tts.wav"],
+
+    sentences = _split_sentences(text)
+    if not sentences:
+        return
+
+    tmp_dir = tempfile.mkdtemp(prefix="piper_sentences_")
+    try:
+        paths = []
+        for i, sentence in enumerate(sentences):
+            out = os.path.join(tmp_dir, f"sent_{i:03d}.wav")
+            _synthesize_sentence(model_path, sentence, out)
+            if os.path.exists(out):
+                paths.append(out)
+        if paths:
+            _concat_with_pauses(paths, pause_ms=180, output_path="/tmp/ai_controller_tts.wav")
+    finally:
+        for f in os.listdir(tmp_dir):
+            try:
+                os.unlink(os.path.join(tmp_dir, f))
+            except Exception:
+                pass
+        os.rmdir(tmp_dir)
+
+    subprocess.run(["mpv", "--no-video", "--speed=0.95", "/tmp/ai_controller_tts.wav"],
                    check=False, stdout=_DEVNULL, stderr=_DEVNULL)
 
 
