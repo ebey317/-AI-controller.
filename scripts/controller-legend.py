@@ -31,18 +31,18 @@ TYPING_STATE_FILE = "/tmp/ptt_typing_state"
 # All button mappings organized by profile (can span multiple pages)
 ALL_LAYOUTS = {
     "desktop": [
-        # User-confirmed controller layout (active AntiMicroX profile is ai-desktop.amgp)
+        # Final Linux desktop layout (matches ai-desktop.amgp)
         ("A",    "Click"),
         ("B",    "Bksp"),
         ("X",    "Del"),
         ("Y",    "Super"),
-        ("LB",   "Kbd"),
-        ("RB",   "W·Tab"),
+        ("LB",   "Shift"),
+        ("RB",   "R·Clk"),
         ("LT",   "Ctrl"),
         ("RT",   "Talk"),
-        ("⧉",    "Tab"),    # View (back)
-        ("☰",    "Shift"),  # Menu / Start
-        ("🎮",   "R·Clk"),  # Xbox/Guide button
+        ("⧉",    "Kbd"),    # View toggles on-screen keyboard
+        ("☰",    "Tab"),    # Menu
+        ("🎮",   "W·Tab"),  # Guide = Super+Tab window switcher
         ("LS",   "Space"),
         ("RS",   "Enter"),
     ],
