@@ -153,15 +153,23 @@ watch_controller &
 WATCH_PID=$!
 trap 'kill $WATCH_PID 2>/dev/null; rm -f /tmp/controller_state_changed; kill_antimicrox; exit 0' EXIT INT TERM
 
+LOCK_FILE="${HOME}/.config/ai-controller/lock_desktop_profile"
+
 while true; do
     if controller_present; then
-        # Default to the single general desktop profile, but switch to a
-        # specialized layout when YouTube TV is in focus.
-        title=$(active_window_title)
-        if is_youtube_tv "$title"; then
-            load "$YOUTUBE_TV_PROFILE" "YouTube TV"
+        if [[ -f "$LOCK_FILE" ]]; then
+            # Launcher/user has requested the desktop profile stay loaded no
+            # matter which window is focused.
+            load "$DESKTOP_PROFILE" "Desktop (locked)"
         else
-            load "$DESKTOP_PROFILE" "Desktop"
+            # Default to the single general desktop profile, but switch to a
+            # specialized layout when YouTube TV is in focus.
+            title=$(active_window_title)
+            if is_youtube_tv "$title"; then
+                load "$YOUTUBE_TV_PROFILE" "YouTube TV"
+            else
+                load "$DESKTOP_PROFILE" "Desktop"
+            fi
         fi
     else
         # No controller → make sure nothing is running, reset state

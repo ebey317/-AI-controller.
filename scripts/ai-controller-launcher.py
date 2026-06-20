@@ -23,6 +23,9 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 INSTALL_DIR = os.path.dirname(SCRIPT_DIR)
 VERSION_FILE = os.path.join(INSTALL_DIR, "VERSION")
 UPDATE_SCRIPT = os.path.join(SCRIPT_DIR, "update.sh")
+CONFIG_DIR = os.path.expanduser("~/.config/ai-controller")
+LOCK_FILE = os.path.join(CONFIG_DIR, "lock_desktop_profile")
+os.makedirs(CONFIG_DIR, exist_ok=True)
 
 SERVICES = [
     "antimicrox-autoload.service",
@@ -108,6 +111,14 @@ class Launcher(Gtk.Window):
         self.stop_btn.connect("clicked", self._on_stop)
         btn_box.pack_start(self.stop_btn, False, False, 0)
 
+        self.lock_btn = Gtk.Button(label="Lock AI Desktop Profile")
+        self.lock_btn.connect("clicked", self._on_lock)
+        btn_box.pack_start(self.lock_btn, False, False, 0)
+
+        self.unlock_btn = Gtk.Button(label="Unlock Profile Switching")
+        self.unlock_btn.connect("clicked", self._on_unlock)
+        btn_box.pack_start(self.unlock_btn, False, False, 0)
+
         update_btn = Gtk.Button(label="Check for Updates")
         update_btn.get_style_context().add_class("action")
         update_btn.connect("clicked", self._on_update)
@@ -141,7 +152,8 @@ class Launcher(Gtk.Window):
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             if r.returncode == 0:
                 running += 1
-        return f"Services: {running}/{len(SERVICES)} running"
+        locked = " | Desktop LOCKED" if os.path.exists(LOCK_FILE) else ""
+        return f"Services: {running}/{len(SERVICES)} running{locked}"
 
     def _refresh_status(self):
         self.status_label.set_text(self._service_status())
@@ -158,6 +170,17 @@ class Launcher(Gtk.Window):
             ["systemctl", "--user", "stop"] + SERVICES,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.status_label.set_text("Stopping services...")
+
+    def _on_lock(self, _widget):
+        open(LOCK_FILE, "w").close()
+        self.status_label.set_text("AI Desktop profile locked.")
+
+    def _on_unlock(self, _widget):
+        try:
+            os.remove(LOCK_FILE)
+        except FileNotFoundError:
+            pass
+        self.status_label.set_text("Profile switching unlocked.")
 
     def _on_update(self, _widget):
         if not os.path.exists(UPDATE_SCRIPT):
