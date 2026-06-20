@@ -198,11 +198,55 @@ def _speak_edge(text, voice):
         )
         subprocess.run(["mpv", "--no-video", mp3_path],
                        check=False, stdout=_DEVNULL, stderr=_DEVNULL)
+        return True
+    except Exception:
+        return False
     finally:
         try:
             os.unlink(mp3_path)
         except Exception:
             pass
+
+
+def _speak_spd(text):
+    """Ultimate fallback using the system's speech-dispatcher voice."""
+    subprocess.run(["spd-say", "-w", text[:500]],
+                   stdout=_DEVNULL, stderr=_DEVNULL)
+
+
+def _piper_speak(text, model_path):
+    """Try to speak with Piper; return True if audio was produced."""
+    if not model_path or not os.path.isfile(model_path):
+        return False
+    sentences = _split_sentences(text)
+    if not sentences:
+        return False
+
+    tmp_dir = tempfile.mkdtemp(prefix="piper_sentences_")
+    try:
+        paths = []
+        for i, sentence in enumerate(sentences):
+            out = os.path.join(tmp_dir, f"sent_{i:03d}.wav")
+            _synthesize_sentence(model_path, sentence, out)
+            if os.path.exists(out) and os.path.getsize(out) > 0:
+                paths.append(out)
+        if paths:
+            _concat_with_pauses(paths, pause_ms=180, output_path="/tmp/ai_controller_tts.wav")
+    finally:
+        for f in os.listdir(tmp_dir):
+            try:
+                os.unlink(os.path.join(tmp_dir, f))
+            except Exception:
+                pass
+        os.rmdir(tmp_dir)
+
+    output_wav = "/tmp/ai_controller_tts.wav"
+    if not os.path.exists(output_wav) or os.path.getsize(output_wav) == 0:
+        return False
+
+    subprocess.run(["mpv", "--no-video", "--speed=0.97", output_wav],
+                   check=False, stdout=_DEVNULL, stderr=_DEVNULL)
+    return True
 
 
 def speak(text, voice_id=None):
@@ -217,37 +261,19 @@ def speak(text, voice_id=None):
         }
 
     if voice.get("engine") == "edge-tts":
-        _speak_edge(text, voice)
+        if _speak_edge(text, voice):
+            return
+        _speak_spd(text)
         return
 
-    model_path = voice["model"]
-    if not model_path:
+    model_path = voice.get("model")
+    if _piper_speak(text, model_path):
         return
 
-    sentences = _split_sentences(text)
-    if not sentences:
+    # Piper failed or model missing — fall back to cloud TTS, then spd-say.
+    if _speak_edge(text, {"voice": "en-US-AriaNeural", "pitch": "+0Hz", "rate": "+0%"}):
         return
-
-    tmp_dir = tempfile.mkdtemp(prefix="piper_sentences_")
-    try:
-        paths = []
-        for i, sentence in enumerate(sentences):
-            out = os.path.join(tmp_dir, f"sent_{i:03d}.wav")
-            _synthesize_sentence(model_path, sentence, out)
-            if os.path.exists(out):
-                paths.append(out)
-        if paths:
-            _concat_with_pauses(paths, pause_ms=180, output_path="/tmp/ai_controller_tts.wav")
-    finally:
-        for f in os.listdir(tmp_dir):
-            try:
-                os.unlink(os.path.join(tmp_dir, f))
-            except Exception:
-                pass
-        os.rmdir(tmp_dir)
-
-    subprocess.run(["mpv", "--no-video", "--speed=0.97", "/tmp/ai_controller_tts.wav"],
-                   check=False, stdout=_DEVNULL, stderr=_DEVNULL)
+    _speak_spd(text)
 
 
 def toggle():
