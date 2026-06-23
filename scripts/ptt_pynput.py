@@ -522,8 +522,11 @@ def start_recording():
         # Auto-space before dictation so consecutive utterances don't run together.
         subprocess.run(['xdotool', 'key', 'space'],
                        env={**os.environ, 'DISPLAY': os.environ.get('DISPLAY', ':0')})
-        rawfile = tempfile.mktemp(suffix='.raw', dir='/tmp')
-        wavfile = tempfile.mktemp(suffix='.wav', dir='/tmp')
+        # Use mkstemp to avoid race condition (mktemp is deprecated/unsafe)
+        fd, rawfile = tempfile.mkstemp(suffix='.raw', dir='/tmp')
+        os.close(fd)
+        fd, wavfile = tempfile.mkstemp(suffix='.wav', dir='/tmp')
+        os.close(fd)
         rec_cmd = [
             'stdbuf', '-o0', 'parec',
             '--rate', str(SAMPLE_RATE), '--channels', str(CHANNELS),

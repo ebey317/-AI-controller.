@@ -12,7 +12,7 @@ import tempfile
 from typing import Optional
 
 import httpx
-from fastapi import FastAPI, File, Form, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import JSONResponse
 
 # Make ai_controller_paths importable when running from any cwd.
@@ -243,7 +243,7 @@ async def voice(
 
 
 # Apply security dependency to all routes.
-app.router.dependencies.append(_secure)
+app.router.dependencies.append(Depends(_secure))
 
 
 if __name__ == "__main__":

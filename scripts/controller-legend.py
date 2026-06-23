@@ -269,8 +269,8 @@ class Legend(Gtk.Window):
         end = start + BUTTONS_PER_PAGE
         return layout[start:end]
 
-    def update_content(self, profile):
-        if profile == self._profile:
+    def update_content(self, profile, force=False):
+        if profile == self._profile and not force:
             return
         self._profile = profile
         layout = ALL_LAYOUTS.get(profile, ALL_LAYOUTS["desktop"])
@@ -303,14 +303,14 @@ class Legend(Gtk.Window):
         if self._current_page < total_pages - 1:
             self._current_page += 1
             save_page(self._current_page)
-            self.update_content(self._profile)
+            self.update_content(self._profile, force=True)
 
     def prev_page(self):
         """Go to previous page."""
         if self._current_page > 0:
             self._current_page -= 1
             save_page(self._current_page)
-            self.update_content(self._profile)
+            self.update_content(self._profile, force=True)
 
     def tick(self):
         # Auto-detect: hide when no controller plugged in
