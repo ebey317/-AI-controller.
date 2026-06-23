@@ -1,5 +1,5 @@
-🎮 **-AI-controller.** — Couch Computing, Voice-First
-============================================================
+🎮 **AI Controller** — Couch Computing, Voice-First
+================================================================
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform: Linux](https://img.shields.io/badge/Platform-Linux-blue.svg)]()
@@ -7,6 +7,11 @@
 **Talk to your computer from the couch. No keyboard. No mouse. Just a controller and headphones.**
 
 Plug in any corded or Bluetooth controller — Xbox, PlayStation, DualShock, generic USB — put on a headset, and run your entire desktop by voice. Press a trigger to talk. A floating keyboard and controller legend keep you in control without getting up.
+
+> 🗂️ **Repository map** — this repo is the private software source. There are three related repos:
+> - `ebey317/ai-controller` — public landing page (README + LICENSE only)
+> - `ebey317/-AI-controller.` — this repo: the actual source code and install scripts
+> - `ebey317/ai-controller-profile` — controller profiles, systemd units, and reference docs
 
 ---
 
@@ -69,14 +74,6 @@ Bundle one voice with one dictation mode. The agent sounds different **and** you
 
 ---
 
-## Perfect For
-
-- Couch gamers who need to search, chat, or command without leaving the game
-- Accessibility users who want hands-free PC control with a controller they already own
-- Streamers who want voice-to-chat without a keyboard on their lap
-
----
-
 ## Quick Start
 
 ```bash
@@ -89,6 +86,16 @@ bash install.sh
 2. Put on headphones
 3. Press **Right Trigger** and talk
 4. Press **View** to toggle the keyboard
+
+---
+
+## Related Repositories
+
+| Repo | Purpose | URL |
+|---|---|---|
+| `ebey317/ai-controller` | Public landing page (README + LICENSE) | https://github.com/ebey317/ai-controller |
+| `ebey317/-AI-controller.` | **This source repo** — install scripts, launcher, voice bridge | https://github.com/ebey317/-AI-controller. |
+| `ebey317/ai-controller-profile` | AntiMicroX profiles, systemd units, reference docs | https://github.com/ebey317/ai-controller-profile |
 
 ---
 
@@ -106,4 +113,4 @@ bash install.sh
 
 - Voice packs: `voices/README.md`
 - Releases & updates: `RELEASES.md`
-- Issues: github.com/ebey317/-AI-controller.
+- Issues: https://github.com/ebey317/-AI-controller./issues

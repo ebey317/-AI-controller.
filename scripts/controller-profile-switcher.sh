@@ -21,7 +21,14 @@ else
     exit 1
 fi
 
-PROFILE_DIR="${HOME}/.config/antimicrox"
+# AntiMicroX's canonical profile directory is where the user expects profiles
+# to be loaded from. The installer symlinks our packaged profiles here, so the
+# locked desktop profile always matches what AntiMicroX itself would show.
+if [ -d "${HOME}/.config/antimicrox" ]; then
+    PROFILE_DIR="${HOME}/.config/antimicrox"
+else
+    PROFILE_DIR="${INSTALL_DIR}/profiles"
+fi
 export DISPLAY="${DISPLAY:-:0}"
 
 # Stabilize Qt / AntiMicroX: disable network bearer polling (prevent SIGBUS)
