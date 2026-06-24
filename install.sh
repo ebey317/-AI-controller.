@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # AI Controller — Consumer installer
 # Run: bash install.sh
-# Sets up a standalone, reboot-safe AI Controller on Linux Mint/Ubuntu/Debian.
+# Sets up a standalone, reboot-safe AI Controller on Linux, macOS, and Windows (WSL).
 
 set -euo pipefail
 
@@ -28,15 +28,27 @@ echo "======================================"
 echo ""
 
 # ── 1. OS CHECK ──────────────────────────────────────────────────────────────
-if [[ "$OSTYPE" != "linux-gnu"* ]]; then
-    echo "ERROR: AI Controller is Linux-only. Supported: Ubuntu, Mint, Debian." >&2
-    exit 1
+# Detect platform and set appropriate package manager
+PLATFORM="unknown"
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    PLATFORM="linux"
+    echo "→ Platform: Linux (Ubuntu/Mint/Debian)"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    PLATFORM="macos"
+    echo "→ Platform: macOS"
+elif [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "cygwin"* ]]; then
+    PLATFORM="windows"
+    echo "→ Platform: Windows (WSL/MSYS)"
+else
+    echo "⚠️  Unknown platform: $OSTYPE"
+    echo "   Continuing with best-effort installation..."
+    PLATFORM="unknown"
 fi
 
 # ── 2. INSTALL SYSTEM DEPENDENCIES ───────────────────────────────────────────
-if [[ "${AI_CONTROLLER_SKIP_APT:-}" == "1" ]]; then
-    echo "→ Skipping apt install (AI_CONTROLLER_SKIP_APT=1)"
-else
+if [[ "${AI_CONTROLLER_SKIP_DEPS:-}" == "1" ]]; then
+    echo "→ Skipping system dependencies (AI_CONTROLLER_SKIP_DEPS=1)"
+elif [[ "$PLATFORM" == "linux" ]]; then
     echo "→ Installing system packages (you may be asked for sudo password)..."
     sudo apt-get update -qq
     sudo apt-get install -y -qq \
@@ -46,6 +58,30 @@ else
         echo "ERROR: failed to install system packages" >&2
         exit 1
     }
+elif [[ "$PLATFORM" == "macos" ]]; then
+    echo "→ Installing system packages via Homebrew..."
+    if ! command -v brew &>/dev/null; then
+        echo "ERROR: Homebrew not found. Install from https://brew.sh first." >&2
+        exit 1
+    fi
+    brew install python3 gtk+3 cairo gobject-introspection pygobject3 \
+        xdotool xclip curl antimicrox mpv wget git portaudio || {
+        echo "ERROR: failed to install system packages via brew" >&2
+        exit 1
+    }
+elif [[ "$PLATFORM" == "windows" ]]; then
+    echo "→ Windows/WSL detected. Installing WSL-specific packages..."
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq \
+        python3 python3-venv python3-pip python3-dev \
+        libgirepository1.0-dev libcairo2-dev python3-gi python3-gi-cairo gir1.2-gtk-3.0 \
+        xdotool xclip curl antimicrox pulseaudio-utils mpv wget git libportaudio2 libnotify-bin || {
+        echo "ERROR: failed to install WSL system packages" >&2
+        exit 1
+    }
+else
+    echo "→ Platform: unknown — attempting generic Python install..."
+    echo "   You may need to install GTK3, Cairo, and PyGObject manually."
 fi
 
 # ── 3. COPY REPO TO INSTALL LOCATION ─────────────────────────────────────────

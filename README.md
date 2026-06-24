@@ -5,6 +5,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform: Linux](https://img.shields.io/badge/Platform-Linux-blue.svg)]()
+[![Platform: macOS](https://img.shields.io/badge/Platform-macOS-silver.svg)]()
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows-green.svg)]()
 
 **Talk to your computer from the couch. No keyboard. No mouse. Just a controller and headphones.**
 
@@ -76,13 +78,18 @@ Bundle one voice with one dictation mode. The agent sounds different **and** you
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
-git clone 'https://github.com/ebey317/-AI-controller..git'
+git clone https://github.com/ebey317/-AI-controller..git
 cd '-AI-controller.'
 bash install.sh
 ```
+
+**Supported Platforms:**
+- 🐧 **Linux** — Ubuntu, Mint, Debian (apt)
+- 🍎 **macOS** — Homebrew required
+- 🪟 **Windows** — WSL2 recommended
 
 1. Plug in your controller (corded or Bluetooth)
 2. Put on headphones
